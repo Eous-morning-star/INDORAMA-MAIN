@@ -2,9 +2,6 @@ import streamlit as st
 import pandas as pd
 import os
 from datetime import datetime, timedelta
-from fpdf import FPDF
-import io
-import matplotlib.pyplot as plt
 import plotly.express as px
 
 # Define deviation thresholds for specific equipment
