@@ -1,7 +1,234 @@
 import streamlit as st
 import pandas as pd
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
+from fpdf import FPDF
+import io
+import matplotlib.pyplot as plt
+import plotly.express as px
+
+# Define deviation thresholds for specific equipment
+equipment_thresholds = ({
+    # Reaction Area
+    "3-P-101": {"Driving End Temp": 60, "Driven End Temp": 80, "RMS Velocity (mm/s)": 4},
+    "3-P-102-A": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.5},
+    "3-P-102-B": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.5},
+    "3-P-103-A": {"Driving End Temp": 58, "Driven End Temp": 58, "RMS Velocity (mm/s)": 4},
+    "3-P-103-B": {"Driving End Temp": 58, "Driven End Temp": 58, "RMS Velocity (mm/s)": 4},
+    "3-P-201": {"Driving End Temp": 65, "Driven End Temp": 65, "RMS Velocity (mm/s)": 4.8},
+    "3-P-202": {"Driving End Temp": 63, "Driven End Temp": 63, "RMS Velocity (mm/s)": 4.6},
+    "3-P-203": {"Driving End Temp": 50, "Driven End Temp": 50, "RMS Velocity (mm/s)": 4},
+    "3-P-204": {"Driving End Temp": 55, "Driven End Temp": 55, "RMS Velocity (mm/s)": 4.5},
+    "3-P-205": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.7},
+    "3-P-206": {"Driving End Temp": 60, "Driven End Temp": 60, "RMS Velocity (mm/s)": 4.2},
+    "3-P-208": {"Driving End Temp": 59, "Driven End Temp": 59, "RMS Velocity (mm/s)": 4.1},
+    "3-P-209": {"Driving End Temp": 61, "Driven End Temp": 61, "RMS Velocity (mm/s)": 4.3},
+    "3-P-301-A": {"Driving End Temp": 70, "Driven End Temp": 70, "RMS Velocity (mm/s)": 6},
+    "3-P-301-B": {"Driving End Temp": 65, "Driven End Temp": 65, "RMS Velocity (mm/s)": 5.5},
+    "3-P-301-C": {"Driving End Temp": 68, "Driven End Temp": 68, "RMS Velocity (mm/s)": 5.8},
+    "3-K-101-A": {"Driving End Temp": 58, "Driven End Temp": 58, "RMS Velocity (mm/s)": 4.2},
+    "3-K-101-B": {"Driving End Temp": 58, "Driven End Temp": 58, "RMS Velocity (mm/s)": 4.2},
+    "3-K-301-A": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.6},
+    "3-K-301-B": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.6},
+    "3-P-302-A": {"Driving End Temp": 60, "Driven End Temp": 60, "RMS Velocity (mm/s)": 4.5},
+    "3-P-302-B": {"Driving End Temp": 60, "Driven End Temp": 60, "RMS Velocity (mm/s)": 4.5},
+    "3-P-302-C": {"Driving End Temp": 58, "Driven End Temp": 58, "RMS Velocity (mm/s)": 4.3},
+    "3-P-303-A": {"Driving End Temp": 57, "Driven End Temp": 57, "RMS Velocity (mm/s)": 4},
+    "3-P-303-B": {"Driving End Temp": 57, "Driven End Temp": 57, "RMS Velocity (mm/s)": 4},
+    "3-P-304-A": {"Driving End Temp": 58, "Driven End Temp": 58, "RMS Velocity (mm/s)": 4.3},
+    "3-P-304-B": {"Driving End Temp": 58, "Driven End Temp": 58, "RMS Velocity (mm/s)": 4.3},
+    "3-P-305-A": {"Driving End Temp": 60, "Driven End Temp": 60, "RMS Velocity (mm/s)": 4.5},
+    "3-P-305-B": {"Driving End Temp": 60, "Driven End Temp": 60, "RMS Velocity (mm/s)": 4.5},
+    "3-P-306-A": {"Driving End Temp": 63, "Driven End Temp": 63, "RMS Velocity (mm/s)": 4.8},
+    "3-P-306-B": {"Driving End Temp": 63, "Driven End Temp": 63, "RMS Velocity (mm/s)": 4.8},
+    "3-M-301": {"Driving End Temp": 65, "Driven End Temp": 65, "RMS Velocity (mm/s)": 5},
+    "3-M-201": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.7},
+    "3-M-203": {"Driving End Temp": 60, "Driven End Temp": 60, "RMS Velocity (mm/s)": 4.5},
+    "3-M-205": {"Driving End Temp": 61, "Driven End Temp": 61, "RMS Velocity (mm/s)": 4.5},
+    "3-M-207": {"Driving End Temp": 60, "Driven End Temp": 60, "RMS Velocity (mm/s)": 4.4},
+    "3-M-209": {"Driving End Temp": 60, "Driven End Temp": 60, "RMS Velocity (mm/s)": 4.4},
+    "3-P-401-A": {"Driving End Temp": 65, "Driven End Temp": 65, "RMS Velocity (mm/s)": 5},
+    "3-P-401-B": {"Driving End Temp": 65, "Driven End Temp": 65, "RMS Velocity (mm/s)": 5},
+    "3-K-102": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.7},
+    "3-K-401": {"Driving End Temp": 64, "Driven End Temp": 64, "RMS Velocity (mm/s)": 4.8},
+    "3-K-402": {"Driving End Temp": 64, "Driven End Temp": 64, "RMS Velocity (mm/s)": 4.8},
+ # Distillation Area
+    "3-P-901-A": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.8},
+    "3-P-901-B": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.8},
+    "3-P-902-A": {"Driving End Temp": 60, "Driven End Temp": 60, "RMS Velocity (mm/s)": 4.5},
+    "3-P-902-B": {"Driving End Temp": 60, "Driven End Temp": 60, "RMS Velocity (mm/s)": 4.5},
+    "3-P-903-A": {"Driving End Temp": 65, "Driven End Temp": 65, "RMS Velocity (mm/s)": 5},
+    "3-P-903-B": {"Driving End Temp": 65, "Driven End Temp": 65, "RMS Velocity (mm/s)": 5},
+    "3-P-903-C": {"Driving End Temp": 67, "Driven End Temp": 67, "RMS Velocity (mm/s)": 5.3},
+    "3-P-904-A": {"Driving End Temp": 60, "Driven End Temp": 60, "RMS Velocity (mm/s)": 4.5},
+    "3-P-904-B": {"Driving End Temp": 60, "Driven End Temp": 60, "RMS Velocity (mm/s)": 4.5},
+    "3-P-905-A": {"Driving End Temp": 58, "Driven End Temp": 58, "RMS Velocity (mm/s)": 4.2},
+    "3-P-905-B": {"Driving End Temp": 58, "Driven End Temp": 58, "RMS Velocity (mm/s)": 4.2},
+    "3-P-906-A": {"Driving End Temp": 63, "Driven End Temp": 63, "RMS Velocity (mm/s)": 4.7},
+    "3-P-906-B": {"Driving End Temp": 63, "Driven End Temp": 63, "RMS Velocity (mm/s)": 4.7},
+    "3-P-907-A": {"Driving End Temp": 64, "Driven End Temp": 64, "RMS Velocity (mm/s)": 4.9},
+    "3-P-907-B": {"Driving End Temp": 64, "Driven End Temp": 64, "RMS Velocity (mm/s)": 4.9},
+    "3-P-909-A": {"Driving End Temp": 60, "Driven End Temp": 60, "RMS Velocity (mm/s)": 4.5},
+    "3-P-909-B": {"Driving End Temp": 60, "Driven End Temp": 60, "RMS Velocity (mm/s)": 4.5},
+    "3-P-910-A": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.7},
+    "3-P-910-B": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.7},
+    "3-P-911-A": {"Driving End Temp": 66, "Driven End Temp": 66, "RMS Velocity (mm/s)": 5.2},
+    "3-P-911-B": {"Driving End Temp": 66, "Driven End Temp": 66, "RMS Velocity (mm/s)": 5.2},
+    "3-P-912-A": {"Driving End Temp": 64, "Driven End Temp": 64, "RMS Velocity (mm/s)": 4.8},
+    "3-P-912-B": {"Driving End Temp": 64, "Driven End Temp": 64, "RMS Velocity (mm/s)": 4.8},
+    "3-P-914-A": {"Driving End Temp": 58, "Driven End Temp": 58, "RMS Velocity (mm/s)": 4.2},
+    "3-P-914-B": {"Driving End Temp": 58, "Driven End Temp": 58, "RMS Velocity (mm/s)": 4.2},
+    "3-P-916-A": {"Driving End Temp": 65, "Driven End Temp": 65, "RMS Velocity (mm/s)": 5.1},
+    "3-P-916-B": {"Driving End Temp": 65, "Driven End Temp": 65, "RMS Velocity (mm/s)": 5.1},
+    "3-P-917": {"Driving End Temp": 63, "Driven End Temp": 63, "RMS Velocity (mm/s)": 4.6},
+    "3-K-901": {"Driving End Temp": 60, "Driven End Temp": 60, "RMS Velocity (mm/s)": 4.5},
+    "3-K-1001-A": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.7},
+    "3-K-1001-B": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.7},
+    "3-K-1001-C": {"Driving End Temp": 63, "Driven End Temp": 63, "RMS Velocity (mm/s)": 4.9},
+    "3-P-1001-A": {"Driving End Temp": 64, "Driven End Temp": 64, "RMS Velocity (mm/s)": 4.8},
+    "3-P-1001-B": {"Driving End Temp": 64, "Driven End Temp": 64, "RMS Velocity (mm/s)": 4.8},
+    "3-P-1001-C": {"Driving End Temp": 65, "Driven End Temp": 65, "RMS Velocity (mm/s)": 5},
+    "3-P-1001-D": {"Driving End Temp": 65, "Driven End Temp": 65, "RMS Velocity (mm/s)": 5},
+    "3-P-1001-E": {"Driving End Temp": 63, "Driven End Temp": 63, "RMS Velocity (mm/s)": 4.7},
+    "3-P-1001-F": {"Driving End Temp": 63, "Driven End Temp": 63, "RMS Velocity (mm/s)": 4.7},
+    "3-P-1011": {"Driving End Temp": 64, "Driven End Temp": 64, "RMS Velocity (mm/s)": 4.9},
+    "3-P-1101-A": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.7},
+    "3-P-1101-B": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.7},
+    "3-P-920-A": {"Driving End Temp": 60, "Driven End Temp": 60, "RMS Velocity (mm/s)": 4.5},
+    "3-P-920-B": {"Driving End Temp": 60, "Driven End Temp": 60, "RMS Velocity (mm/s)": 4.5},
+    "3-P-1102-A": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.7},
+    "3-P-1102-B": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.7},
+    "3-P-1121": {"Driving End Temp": 63, "Driven End Temp": 63, "RMS Velocity (mm/s)": 4.6},
+    "3-P-1122": {"Driving End Temp": 63, "Driven End Temp": 63, "RMS Velocity (mm/s)": 4.6},
+    "3-P-1201-A": {"Driving End Temp": 65, "Driven End Temp": 65, "RMS Velocity (mm/s)": 5.2},
+    "3-P-1201-B": {"Driving End Temp": 65, "Driven End Temp": 65, "RMS Velocity (mm/s)": 5.2},
+    "3-P-1202-A": {"Driving End Temp": 64, "Driven End Temp": 64, "RMS Velocity (mm/s)": 4.8},
+    "3-P-1202-B": {"Driving End Temp": 64, "Driven End Temp": 64, "RMS Velocity (mm/s)": 4.8},
+    "3-RUP-901": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.6},
+    "3-RUK-901": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.6},
+# Finishing Area
+    "3-P-501-A": {"Driving End Temp": 58, "Driven End Temp": 58, "RMS Velocity (mm/s)": 4.2},
+    "3-P-501-B": {"Driving End Temp": 58, "Driven End Temp": 58, "RMS Velocity (mm/s)": 4.2},
+    "3-P-502-A": {"Driving End Temp": 60, "Driven End Temp": 60, "RMS Velocity (mm/s)": 4.5},
+    "3-P-502-B": {"Driving End Temp": 60, "Driven End Temp": 60, "RMS Velocity (mm/s)": 4.5},
+    "3-P-503-A": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.7},
+    "3-P-503-B": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.7},
+    "3-P-504-A": {"Driving End Temp": 63, "Driven End Temp": 63, "RMS Velocity (mm/s)": 4.8},
+    "3-P-504-B": {"Driving End Temp": 63, "Driven End Temp": 63, "RMS Velocity (mm/s)": 4.8},
+    "3-P-601-A": {"Driving End Temp": 65, "Driven End Temp": 65, "RMS Velocity (mm/s)": 5.2},
+    "3-P-601-B": {"Driving End Temp": 65, "Driven End Temp": 65, "RMS Velocity (mm/s)": 5.2},
+    "3-P-601-C": {"Driving End Temp": 64, "Driven End Temp": 64, "RMS Velocity (mm/s)": 4.9},
+    "3-P-601-D": {"Driving End Temp": 64, "Driven End Temp": 64, "RMS Velocity (mm/s)": 4.9},
+    "3-P-602-A": {"Driving End Temp": 63, "Driven End Temp": 63, "RMS Velocity (mm/s)": 4.8},
+    "3-P-602-B": {"Driving End Temp": 63, "Driven End Temp": 63, "RMS Velocity (mm/s)": 4.8},
+    "3-P-602-C": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.7},
+    "3-P-602-D": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.7},
+    "3-P-603-A": {"Driving End Temp": 61, "Driven End Temp": 61, "RMS Velocity (mm/s)": 4.6},
+    "3-P-603-B": {"Driving End Temp": 61, "Driven End Temp": 61, "RMS Velocity (mm/s)": 4.6},
+    "3-P-604-A": {"Driving End Temp": 60, "Driven End Temp": 60, "RMS Velocity (mm/s)": 4.5},
+    "3-P-604-B": {"Driving End Temp": 60, "Driven End Temp": 60, "RMS Velocity (mm/s)": 4.5},
+    "3-P-604-C": {"Driving End Temp": 59, "Driven End Temp": 59, "RMS Velocity (mm/s)": 4.4},
+    "3-P-604-D": {"Driving End Temp": 59, "Driven End Temp": 59, "RMS Velocity (mm/s)": 4.4},
+    "3-P-605-1": {"Driving End Temp": 58, "Driven End Temp": 58, "RMS Velocity (mm/s)": 4.3},
+    "3-P-605-2": {"Driving End Temp": 58, "Driven End Temp": 58, "RMS Velocity (mm/s)": 4.3},
+    "3-P-606-1": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.7},
+    "3-P-606-2": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.7},
+    "3-P-607-1": {"Driving End Temp": 61, "Driven End Temp": 61, "RMS Velocity (mm/s)": 4.6},
+    "3-P-607-2": {"Driving End Temp": 61, "Driven End Temp": 61, "RMS Velocity (mm/s)": 4.6},
+    "3-P-608-1": {"Driving End Temp": 60, "Driven End Temp": 60, "RMS Velocity (mm/s)": 4.5},
+    "3-P-608-2": {"Driving End Temp": 60, "Driven End Temp": 60, "RMS Velocity (mm/s)": 4.5},
+    "3-P-609-1": {"Driving End Temp": 58, "Driven End Temp": 58, "RMS Velocity (mm/s)": 4.3},
+    "3-P-609-2": {"Driving End Temp": 58, "Driven End Temp": 58, "RMS Velocity (mm/s)": 4.3},
+    "3-P-610-1": {"Driving End Temp": 57, "Driven End Temp": 57, "RMS Velocity (mm/s)": 4.2},
+    "3-P-610-2": {"Driving End Temp": 57, "Driven End Temp": 57, "RMS Velocity (mm/s)": 4.2},
+    "3-P-611-1": {"Driving End Temp": 63, "Driven End Temp": 63, "RMS Velocity (mm/s)": 4.8},
+    "3-P-611-2": {"Driving End Temp": 63, "Driven End Temp": 63, "RMS Velocity (mm/s)": 4.8},
+    "3-P-612-1": {"Driving End Temp": 64, "Driven End Temp": 64, "RMS Velocity (mm/s)": 4.9},
+    "3-P-612-2": {"Driving End Temp": 64, "Driven End Temp": 64, "RMS Velocity (mm/s)": 4.9},
+    "3-K-602-A": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.7},
+    "3-K-602-B": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.7},
+    "3-K-602-C": {"Driving End Temp": 63, "Driven End Temp": 63, "RMS Velocity (mm/s)": 4.8},
+    "3-K-603-1": {"Driving End Temp": 64, "Driven End Temp": 64, "RMS Velocity (mm/s)": 4.9},
+    "3-K-603-2": {"Driving End Temp": 64, "Driven End Temp": 64, "RMS Velocity (mm/s)": 4.9},
+    "3-K-605-A": {"Driving End Temp": 65, "Driven End Temp": 65, "RMS Velocity (mm/s)": 5.1},
+    "3-K-605-B": {"Driving End Temp": 65, "Driven End Temp": 65, "RMS Velocity (mm/s)": 5.1},
+    "3-K-605-C": {"Driving End Temp": 64, "Driven End Temp": 64, "RMS Velocity (mm/s)": 4.9},
+    "3-K-605-D": {"Driving End Temp": 64, "Driven End Temp": 64, "RMS Velocity (mm/s)": 4.9},
+    "3-K-605-E": {"Driving End Temp": 63, "Driven End Temp": 63, "RMS Velocity (mm/s)": 4.8},
+    "3-K-605-F": {"Driving End Temp": 63, "Driven End Temp": 63, "RMS Velocity (mm/s)": 4.8},
+    "3-K-605-G": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.7},
+    "3-K-606-A": {"Driving End Temp": 61, "Driven End Temp": 61, "RMS Velocity (mm/s)": 4.6},
+    "3-K-606-B": {"Driving End Temp": 61, "Driven End Temp": 61, "RMS Velocity (mm/s)": 4.6},
+    "3-K-606-C": {"Driving End Temp": 60, "Driven End Temp": 60, "RMS Velocity (mm/s)": 4.5},
+    "3-K-606-D": {"Driving End Temp": 60, "Driven End Temp": 60, "RMS Velocity (mm/s)": 4.5},
+    "3-K-606-E": {"Driving End Temp": 59, "Driven End Temp": 59, "RMS Velocity (mm/s)": 4.4},
+    "3-K-606-F": {"Driving End Temp": 59, "Driven End Temp": 59, "RMS Velocity (mm/s)": 4.4},
+    "3-K-606-G": {"Driving End Temp": 58, "Driven End Temp": 58, "RMS Velocity (mm/s)": 4.3},
+    "3-K-701-A": {"Driving End Temp": 63, "Driven End Temp": 63, "RMS Velocity (mm/s)": 4.8},
+    "3-K-701-B": {"Driving End Temp": 63, "Driven End Temp": 63, "RMS Velocity (mm/s)": 4.8},
+    "3-K-701-C": {"Driving End Temp": 64, "Driven End Temp": 64, "RMS Velocity (mm/s)": 4.9},
+    "3-K-701-D": {"Driving End Temp": 64, "Driven End Temp": 64, "RMS Velocity (mm/s)": 4.9},
+    "3-K-701-E": {"Driving End Temp": 65, "Driven End Temp": 65, "RMS Velocity (mm/s)": 5},
+    "3-K-701-F": {"Driving End Temp": 65, "Driven End Temp": 65, "RMS Velocity (mm/s)": 5},
+    "3-K-704-A": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.7},
+    "3-K-704-B": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.7},
+    "3-K-801-A": {"Driving End Temp": 60, "Driven End Temp": 60, "RMS Velocity (mm/s)": 4.5},
+    "3-K-801-B": {"Driving End Temp": 60, "Driven End Temp": 60, "RMS Velocity (mm/s)": 4.5},
+    "3-K-802-A": {"Driving End Temp": 63, "Driven End Temp": 63, "RMS Velocity (mm/s)": 4.8},
+    "3-K-802-B": {"Driving End Temp": 63, "Driven End Temp": 63, "RMS Velocity (mm/s)": 4.8},
+    "3-K-802-C": {"Driving End Temp": 64, "Driven End Temp": 64, "RMS Velocity (mm/s)": 4.9},
+    "3-M-501": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.7},
+    "3-M-502": {"Driving End Temp": 61, "Driven End Temp": 61, "RMS Velocity (mm/s)": 4.6},
+    "3-M-503": {"Driving End Temp": 60, "Driven End Temp": 60, "RMS Velocity (mm/s)": 4.5},
+    "3-M-504": {"Driving End Temp": 58, "Driven End Temp": 58, "RMS Velocity (mm/s)": 4.3},
+    "3-M-505": {"Driving End Temp": 63, "Driven End Temp": 63, "RMS Velocity (mm/s)": 4.8},
+ # Butene Area
+    "2-P-2101-A": {"Driving End Temp": 55, "Driven End Temp": 55, "RMS Velocity (mm/s)": 3.8},
+    "2-P-2101-B": {"Driving End Temp": 55, "Driven End Temp": 55, "RMS Velocity (mm/s)": 3.8},
+    "2-P-2301-A": {"Driving End Temp": 58, "Driven End Temp": 58, "RMS Velocity (mm/s)": 4.2},
+    "2-P-2301-B": {"Driving End Temp": 58, "Driven End Temp": 58, "RMS Velocity (mm/s)": 4.2},
+    "2-P-2302-A": {"Driving End Temp": 60, "Driven End Temp": 60, "RMS Velocity (mm/s)": 4.5},
+    "2-P-2302-B": {"Driving End Temp": 60, "Driven End Temp": 60, "RMS Velocity (mm/s)": 4.5},
+    "2-P-2306-A": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.7},
+    "2-P-2306-B": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.7},
+    "2-P-2201-A": {"Driving End Temp": 63, "Driven End Temp": 63, "RMS Velocity (mm/s)": 4.8},
+    "2-P-2201-B": {"Driving End Temp": 63, "Driven End Temp": 63, "RMS Velocity (mm/s)": 4.8},
+    "2-P-2202-A": {"Driving End Temp": 64, "Driven End Temp": 64, "RMS Velocity (mm/s)": 4.9},
+    "2-P-2202-B": {"Driving End Temp": 64, "Driven End Temp": 64, "RMS Velocity (mm/s)": 4.9},
+    "2-P-2203-A": {"Driving End Temp": 65, "Driven End Temp": 65, "RMS Velocity (mm/s)": 5.0},
+    "2-P-2203-B": {"Driving End Temp": 65, "Driven End Temp": 65, "RMS Velocity (mm/s)": 5.0},
+    "2-P-2304-A": {"Driving End Temp": 63, "Driven End Temp": 63, "RMS Velocity (mm/s)": 4.8},
+    "2-P-2304-B": {"Driving End Temp": 63, "Driven End Temp": 63, "RMS Velocity (mm/s)": 4.8},
+    "2-P-2305-A": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.7},
+    "2-P-2305-B": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.7},
+    "2-P-2401-A": {"Driving End Temp": 60, "Driven End Temp": 60, "RMS Velocity (mm/s)": 4.5},
+    "2-P-2401-B": {"Driving End Temp": 60, "Driven End Temp": 60, "RMS Velocity (mm/s)": 4.5},
+    "2-P-2601-A": {"Driving End Temp": 58, "Driven End Temp": 58, "RMS Velocity (mm/s)": 4.3},
+    "2-P-2601-B": {"Driving End Temp": 58, "Driven End Temp": 58, "RMS Velocity (mm/s)": 4.3},
+    "2-P-2701": {"Driving End Temp": 57, "Driven End Temp": 57, "RMS Velocity (mm/s)": 4.2},
+    "2-P-2501-A": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.7},
+    "2-P-2501-B": {"Driving End Temp": 62, "Driven End Temp": 62, "RMS Velocity (mm/s)": 4.7},
+    "2-P-2502-A": {"Driving End Temp": 61, "Driven End Temp": 61, "RMS Velocity (mm/s)": 4.6},
+    "2-P-2502-B": {"Driving End Temp": 61, "Driven End Temp": 61, "RMS Velocity (mm/s)": 4.6},
+    "2-P-2602-A": {"Driving End Temp": 60, "Driven End Temp": 60, "RMS Velocity (mm/s)": 4.5},
+    "2-P-2602-B": {"Driving End Temp": 60, "Driven End Temp": 60, "RMS Velocity (mm/s)": 4.5},
+    "2-P-2303-A": {"Driving End Temp": 58, "Driven End Temp": 58, "RMS Velocity (mm/s)": 4.3},
+    "2-P-2303-B": {"Driving End Temp": 58, "Driven End Temp": 58, "RMS Velocity (mm/s)": 4.3},
+})
+
+# Initialize session state variables
+if "page" not in st.session_state:
+    st.session_state.page = "main"  # Set default page to "main"
+
+# Load data from the file path
+file_path = "C:/Users/USER/Desktop/condition_data.csv"
+
+if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
+    data = pd.read_csv(file_path)
+    data["Date"] = pd.to_datetime(data["Date"])  # Ensure the Date column is in datetime format
+else:
+    st.warning("No data file found or the file is empty.")
+    data = pd.DataFrame()  # Set an empty DataFrame if no data is available
 
 # Add Utility Functions Here
 def calculate_kpis(file_path):
@@ -39,36 +266,6 @@ def calculate_kpis(file_path):
         "data": data
     }
 
-def generate_recommendations(file_path):
-    if not os.path.exists(file_path) or os.path.getsize(file_path) == 0:
-        return ["No data available for recommendations."]
-    data = pd.read_csv(file_path)
-    if data.empty:
-        return ["No data available for recommendations."]
-    recommendations = []
-    if (data["Driving End Temp"] > 80).any():
-        recommendations.append("Investigate high driving end temperature.")
-    if (data["RMS Velocity (mm/s)"] > 5).any():
-        recommendations.append("Check equipment with high vibration levels.")
-    if (data["Oil Level"] == "Low").any():
-        recommendations.append("Refill oil for equipment with low levels.")
-    if not recommendations:
-        recommendations.append("All equipment is operating within normal parameters.")
-    return recommendations
-
-def compliance_summary(file_path):
-    if not os.path.exists(file_path) or os.path.getsize(file_path) == 0:
-        return {"safety_check": "No Data", "oil_level_compliance": "No Data"}
-    data = pd.read_csv(file_path)
-    if data.empty:
-        return {"safety_check": "No Data", "oil_level_compliance": "No Data"}
-    safety_check = (data["Abnormal Sound"] == "No").mean() * 100
-    oil_level_compliance = (data["Oil Level"] != "Low").mean() * 100
-    return {
-        "safety_check": f"{safety_check:.2f}%",
-        "oil_level_compliance": f"{oil_level_compliance:.2f}%"
-    }
-
 
 # Set page title
 st.set_page_config(page_title="Indorama Petrochemicals Ltd", layout="wide")
@@ -79,9 +276,26 @@ if "page" not in st.session_state:
 
 if st.session_state.page == "main":
     # Set the file path for the database
-    file_path = "data/condition_data.csv"
+    file_path = "C:/Users/USER/Desktop/condition_data.csv"
 
     st.title("INDORAMA PETROCHEMICALS LTD")
+    st.subheader("Your Gateway to Enhanced Maintenance Efficiency")
+
+    # Footer Section
+    st.write("---")  # Separator line
+    st.write("### 📜 Footer Information")
+
+    st.write("""
+        - **Application Version**: 1.0.0  
+        - **Developer**: [Nwaoba Kenneth / PE Mechanical]  
+        - **Contact Support**: [nwaoba00@gmail.com](mailto:support@yourcompany.com)
+        """)
+
+    st.write("""
+        This application is designed to improve condition monitoring and maintenance tracking for Indorama Petrochemicals Ltd.
+        For assistance or feedback, please reach out via the support link above.
+        """)
+
 
     # Greeting Based on Time
     current_hour = datetime.now().hour
@@ -102,48 +316,200 @@ if st.session_state.page == "main":
     col2.metric("Average Temperature", kpis["avg_temp"])
     col3.metric("Running Equipment", kpis["running_percentage"])
 
+
+    # Function to detect weekly deviations and generate a report
+    def detect_weekly_deviations(file_path, equipment_thresholds, start_date, end_date):
+        """
+        Detect significant deviations for the current week and generate a printable report.
+        """
+        if not os.path.exists(file_path) or os.path.getsize(file_path) == 0:
+            return pd.DataFrame(), "No data available for analysis."
+
+        data = pd.read_csv(file_path)
+        if data.empty:
+            return pd.DataFrame(), "No data available for analysis."
+
+        # Convert Date column to datetime and filter data
+        data["Date"] = pd.to_datetime(data["Date"], errors="coerce")
+        data = data.dropna(subset=["Date"])  # Drop rows with invalid dates
+        filtered_data = data[(data["Date"] >= pd.to_datetime(start_date)) & (data["Date"] <= pd.to_datetime(end_date))]
+
+        if filtered_data.empty:
+            return pd.DataFrame(), "No significant deviations detected for the selected week."
+
+        deviations = []
+
+        # Check for deviations based on thresholds
+        grouped = filtered_data.groupby("Equipment")
+        for equipment, group in grouped:
+            if equipment in equipment_thresholds:
+                thresholds = equipment_thresholds[equipment]
+                if (
+                        (group["Driving End Temp"] > thresholds["Driving End Temp"]).any()
+                        or (group["Driven End Temp"] > thresholds["Driven End Temp"]).any()
+                        or (group["RMS Velocity (mm/s)"] > thresholds["RMS Velocity (mm/s)"]).any()
+                ):
+                    deviations.append(group)
+
+        deviation_data = pd.concat(deviations) if deviations else pd.DataFrame()
+
+        if deviation_data.empty:
+            return pd.DataFrame(), "All equipment is operating within defined thresholds for the week."
+
+        return deviation_data, "Major deviations detected for the selected week."
+
+
+    # Weekly Report and AI Insights Section
+    st.subheader("Weekly Report and Insights")
+
+    # Unique keys for date inputs
+    start_date = st.date_input(
+        "Select Start Date",
+        value=datetime.now() - timedelta(days=7),
+        key="weekly_report_start_date",
+    )
+    end_date = st.date_input(
+        "Select End Date",
+        value=datetime.now(),
+        key="weekly_report_end_date",
+    )
+
+    # Generate report button
+    if st.button("Generate Weekly Report with Insights", key="generate_ai_weekly_report_button"):
+        deviation_data, message = detect_weekly_deviations(file_path, equipment_thresholds, start_date, end_date)
+
+        # Display message
+        st.write(message)
+
+        if not deviation_data.empty:
+            # Show deviation table
+            st.subheader("Equipment with Major Deviations")
+            st.dataframe(deviation_data)
+
+            # Downloadable Report
+            st.write("#### Download Weekly Report")
+            csv = deviation_data.to_csv(index=False)
+            st.download_button("Download Report as CSV", data=csv, file_name="weekly_report.csv", mime="text/csv")
+
+            # AI Insights Based on Weekly Data
+            st.write("## Insights & Recommendations")
+            recommendations = []
+            for _, row in deviation_data.iterrows():
+                equipment = row["Equipment"]
+
+                # Example AI recommendation rules
+                if "Driving End Temp" in deviation_data.columns and row["Driving End Temp"] > equipment_thresholds.get(
+                        equipment, {}).get("Driving End Temp", float('inf')):
+                    recommendations.append(
+                        f"🔧 **{equipment}**: Driving End Temp exceeds threshold. Maintenance recommended.")
+
+                if "Oil Level" in deviation_data.columns and row["Oil Level"] == "Low":
+                    recommendations.append(f"🛢️ **{equipment}**: Oil level is low. Consider refilling.")
+
+                if "RMS Velocity (mm/s)" in deviation_data.columns and row[
+                    "RMS Velocity (mm/s)"] > equipment_thresholds.get(equipment, {}).get("RMS Velocity (mm/s)",
+                                                                                         float('inf')):
+                    recommendations.append(f"📊 **{equipment}**: High vibration detected. Inspect for potential issues.")
+
+            # Display recommendations
+            if recommendations:
+                st.write("### 🔍 Recommendations Based on Weekly Data")
+                for rec in recommendations:
+                    st.info(rec)
+            else:
+                st.success(
+                    "✅ No immediate issues detected in the weekly data. All equipment operating within thresholds.")
+        else:
+            st.warning("No significant deviations detected for the selected week.")
+
+
+    # Ensure data is available from KPI calculation
+    data = kpis["data"]
+
+    if not data.empty:  # Check if the data is available
+        st.write("---")
+        st.subheader("Running Equipment by Area")
+
+        # Calculate the percentage of running equipment per area
+        if "Area" in data.columns and "Is Running" in data.columns:
+            running_percentage_by_area = (
+                    data.groupby("Area")["Is Running"].mean() * 100
+            ).reset_index()
+            running_percentage_by_area.rename(
+                columns={"Is Running": "Running Percentage (%)"}, inplace=True
+            )
+
+            # Display the table
+            st.table(running_percentage_by_area)
+        else:
+            st.warning("The dataset does not contain 'Area' or 'Is Running' columns.")
+    else:
+        st.warning("No data available to calculate running equipment percentages.")
+
     # Add KPI Charts
     data = kpis["data"]
     if not data.empty:  # Check if data is available
         st.write("---")
         st.subheader("KPI Charts")
 
-        # Compliance Rate Trend
-        if "Date" in data.columns and "Is Running" in data.columns:
-            data["Date"] = pd.to_datetime(data["Date"])  # Ensure Date is datetime
-            compliance_trend = data.groupby("Date")["Is Running"].mean() * 100
-            st.write("### Compliance Rate Trend")
-            st.line_chart(compliance_trend)
+        import plotly.express as px
 
         # Average Temperature Trend
         if "Driving End Temp" in data.columns and "Driven End Temp" in data.columns:
+            # Calculate the average temperature
             data["Avg Temp"] = data[["Driving End Temp", "Driven End Temp"]].mean(axis=1)
-            avg_temp_trend = data.groupby("Date")["Avg Temp"].mean()
+
+            # Aggregate average temperature by date
+            avg_temp_trend = data.groupby("Date", as_index=False)["Avg Temp"].mean()
+
             st.write("### Average Temperature Trend")
-            st.line_chart(avg_temp_trend)
+
+            # Create a Plotly line chart
+            fig = px.line(
+                avg_temp_trend,
+                x="Date",
+                y="Avg Temp",
+                title="Average Temperature Trend Over Time",
+                labels={"Avg Temp": "Average Temperature (°C)", "Date": "Date"},
+                markers=True,  # Adds markers for each data point
+            )
+
+            # Enhance chart aesthetics
+            fig.update_traces(line=dict(width=2))
+            fig.update_layout(
+                title_font_size=18,
+                xaxis_title_font_size=14,
+                yaxis_title_font_size=14,
+                hovermode="x unified",  # Combine hover info
+            )
+
+            st.plotly_chart(fig)
+        else:
+            st.warning("Temperature data (Driving End or Driven End) is missing in the dataset.")
+
 
         # Running Equipment Count
-        if "Is Running" in data.columns:
-            running_equipment = data.groupby("Date")["Is Running"].sum()
-            st.write("### Running Equipment Count")
-            st.bar_chart(running_equipment)
+        if "Is Running" in data.columns and "Area" in data.columns:
+            running_equipment_by_area = data.groupby(["Date", "Area"])["Is Running"].sum().reset_index()
+            st.write("### Running Equipment Count by Area")
+
+            # Create the bar chart with Plotly
+            fig = px.bar(
+                running_equipment_by_area,
+                x="Date",
+                y="Is Running",
+                color="Area",
+                title="Running Equipment Count by Area",
+                labels={"Is Running": "Running Equipment Count"},
+            )
+            fig.update_layout(barmode="stack")
+            st.plotly_chart(fig)
+        else:
+            st.warning("The dataset does not contain 'Is Running' or 'Area' columns.")
 
     else:
         st.warning("No data available for KPI charts.")
 
-    # Display Recommendations
-    st.subheader("Recommendations")
-    recommendations = generate_recommendations(file_path)
-    for recommendation in recommendations:
-        st.write(f"- {recommendation}")
-
-    st.write("---")
-
-    # Display Compliance Metrics
-    st.subheader("Compliance Metrics")
-    compliance = compliance_summary(file_path)
-    st.write(f"**Safety Check Compliance:** {compliance['safety_check']}")
-    st.write(f"**Oil Level Compliance:** {compliance['oil_level_compliance']}")
 
     # Next Button to Navigate
     if st.button("Next"):
@@ -332,7 +698,7 @@ elif st.session_state.page == "monitoring":
 
             # Save to CSV
             df = pd.DataFrame(data)
-            file_path = "data/condition_data.csv"
+            file_path = "C:/Users/USER/Desktop/condition_data.csv"
             if not os.path.exists("data"):
                 os.makedirs("data")
             if os.path.exists(file_path):
@@ -346,7 +712,7 @@ elif st.session_state.page == "monitoring":
     # Tab 2: Reports and Visualizations
     with (tab2):
         st.header("Reports and Visualization")
-        file_path = "data/condition_data.csv"
+        file_path = "C:/Users/USER/Desktop/condition_data.csv"
 
         # Load data
         data = load_data(file_path)
@@ -406,9 +772,19 @@ elif st.session_state.page == "monitoring":
                         # Driving and Driven End Temperature Trend
                         if "Driving End Temp" in visualization_data.columns and "Driven End Temp" in visualization_data.columns:
                             st.write("#### Driving and Driven End Temperature Trend for Equipment")
-                            temp_chart_data = visualization_data[["Date", "Driving End Temp", "Driven End Temp"]]
-                            temp_chart_data = temp_chart_data.set_index("Date")
-                            st.line_chart(temp_chart_data)
+                            temp_chart_data = visualization_data[["Date", "Driving End Temp", "Driven End Temp"]].melt(
+                                id_vars="Date",
+                                var_name="Temperature Type",
+                                value_name="Temperature")
+                            fig = px.line(
+                                temp_chart_data,
+                                x="Date",
+                                y="Temperature",
+                                color="Temperature Type",
+                                title="Driving and Driven End Temperature Trend",
+                                labels={"Temperature": "Temperature (°C)"}
+                            )
+                            st.plotly_chart(fig)
                         else:
                             st.warning(
                                 "Temperature data (Driving End or Driven End) is missing in the selected dataset.")
@@ -416,51 +792,89 @@ elif st.session_state.page == "monitoring":
                         # Equipment Vibration Trend
                         if "RMS Velocity (mm/s)" in visualization_data.columns and "Peak Acceleration (g)" in visualization_data.columns and "Displacement (µm)" in visualization_data.columns:
                             st.write("#### Vibration Trend for Equipment")
-                            vibration_chart_data = visualization_data[["Date", "RMS Velocity (mm/s)", "Peak Acceleration (g)", "Displacement (µm)"]]
-                            vibration_chart_data = vibration_chart_data.set_index("Date")
-                            st.line_chart(vibration_chart_data)
+                            vibration_chart_data = visualization_data[
+                                ["Date", "RMS Velocity (mm/s)", "Peak Acceleration (g)", "Displacement (µm)"]].melt(
+                                id_vars="Date",
+                                var_name="Vibration Type",
+                                value_name="Value")
+                            fig = px.line(
+                                vibration_chart_data,
+                                x="Date",
+                                y="Value",
+                                color="Vibration Type",
+                                title="Vibration Trend for Equipment",
+                                labels={"Value": "Value"}
+                            )
+                            st.plotly_chart(fig)
                         else:
-                            st.warning(
-                                "Vibration data (RMS Velocity (mm/s) or Peak Acceleration (g) or Displacement (µm)) is missing in the selected dataset.")
+                            st.warning("Vibration data is missing in the selected dataset.")
 
                         # Driving and Driven End Temperature Trend for Gearbox
                         if "Gearbox Temp" in visualization_data.columns:
                             st.write("#### Gearbox Temperature Trend")
-                            gearbox_temp_chart_data = visualization_data[["Date", "Gearbox Temp"]]
-                            gearbox_temp_chart_data = gearbox_temp_chart_data.set_index("Date")
-                            st.line_chart(gearbox_temp_chart_data)
+                            fig = px.line(
+                                visualization_data,
+                                x="Date",
+                                y="Gearbox Temp",
+                                title="Gearbox Temperature Trend",
+                                labels={"Gearbox Temp": "Temperature (°C)"}
+                            )
+                            st.plotly_chart(fig)
                         else:
-                            st.warning(
-                                "Gearbox Temperature data (Gearbox Temp) is missing in the selected dataset.")
+                            st.warning("Gearbox Temperature data is missing in the selected dataset.")
 
                         # Equipment Vibration Trend for Gearbox
                         if "Gearbox RMS Velocity (mm/s)" in visualization_data.columns and "Gearbox Peak Acceleration (g)" in visualization_data.columns and "Gearbox Displacement (µm)" in visualization_data.columns:
                             st.write("#### Vibration Trend for Gearbox")
                             gearbox_vibration_chart_data = visualization_data[
-                                ["Date", "Gearbox RMS Velocity (mm/s)", "Gearbox Peak Acceleration (g)", "Gearbox Displacement (µm)"]]
-                            gearbox_vibration_chart_data = gearbox_vibration_chart_data.set_index("Date")
-                            st.line_chart(gearbox_vibration_chart_data)
+                                ["Date", "Gearbox RMS Velocity (mm/s)", "Gearbox Peak Acceleration (g)",
+                                 "Gearbox Displacement (µm)"]].melt(id_vars="Date",
+                                                                    var_name="Vibration Type",
+                                                                    value_name="Value")
+                            fig = px.line(
+                                gearbox_vibration_chart_data,
+                                x="Date",
+                                y="Value",
+                                color="Vibration Type",
+                                title="Vibration Trend for Gearbox",
+                                labels={"Value": "Value"}
+                            )
+                            st.plotly_chart(fig)
                         else:
-                            st.warning(
-                                "Gearbox Vibration data (Gearbox RMS Velocity (mm/s) or Gearbox Peak Acceleration (g) or Gearbox Displacement (µm)) is missing in the selected dataset.")
+                            st.warning("Gearbox Vibration data is missing in the selected dataset.")
 
                         # Oil Level Distribution for Equipment
                         if "Oil Level" in visualization_data.columns:
                             st.write("#### Oil Level Distribution for Equipment")
-                            oil_summary = visualization_data["Oil Level"].value_counts()
-                            st.bar_chart(oil_summary)
+                            oil_summary = visualization_data["Oil Level"].value_counts().reset_index()
+                            oil_summary.columns = ["Oil Level", "Count"]
+                            fig = px.bar(
+                                oil_summary,
+                                x="Oil Level",
+                                y="Count",
+                                title="Oil Level Distribution for Equipment",
+                                labels={"Count": "Number of Records"}
+                            )
+                            st.plotly_chart(fig)
                         else:
                             st.warning("Oil Level data is missing in the selected dataset.")
 
                         # Oil Level Distribution for Gearbox
                         if "Gearbox Oil Level" in visualization_data.columns:
                             st.write("#### Oil Level Distribution for Gearbox")
-                            gearbox_oil_summary = visualization_data["Gearbox Oil Level"].value_counts()
-                            st.bar_chart(gearbox_oil_summary)
+                            gearbox_oil_summary = visualization_data["Gearbox Oil Level"].value_counts().reset_index()
+                            gearbox_oil_summary.columns = ["Gearbox Oil Level", "Count"]
+                            fig = px.bar(
+                                gearbox_oil_summary,
+                                x="Gearbox Oil Level",
+                                y="Count",
+                                title="Oil Level Distribution for Gearbox",
+                                labels={"Count": "Number of Records"}
+                            )
+                            st.plotly_chart(fig)
                         else:
                             st.warning("Gearbox Oil Level data is missing in the selected dataset.")
 
     # Add Back Button
     if st.button("Back to Home"):
         st.session_state.page = "main"
-
