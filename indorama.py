@@ -374,9 +374,6 @@ def calculate_kpis(file_path):
 # Display the logo at the top of the homepage
 st.image("indorama_logo.png", use_column_width=True, caption="Indorama Petrochemicals Ltd")
 
-# Set page title
-st.set_page_config(page_title="Indorama Petrochemicals Ltd", layout="wide")
-
 # Main Page Functionality
 if "page" not in st.session_state:
     st.session_state.page = "main"
