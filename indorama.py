@@ -380,7 +380,6 @@ if "page" not in st.session_state:
 
 if st.session_state.page == "main":
         #Main Page
-    st.title("INDORAMA PETROCHEMICALS LTD")
     st.subheader("Your Gateway to Enhanced Maintenance Efficiency")
 
     # Greeting Based on Time
