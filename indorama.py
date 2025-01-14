@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import os
@@ -455,21 +454,6 @@ if st.session_state.page == "main":
             st.write("#### Download High Priority Report")
             csv = filtered_data.to_csv(index=False)
             st.download_button("Download as CSV", data=csv, file_name="high_priority_report.csv", mime="text/csv")
-
-# Footer Section
-    st.write("---")  # Separator line
-    st.write("### 📜 Footer Information")
-
-    st.write("""
-        - **Application Version**: 1.0.0  
-        - **Developer**: [Nwaoba Kenneth / PE Mechanical]  
-        - **Contact Support**: [nwaoba00@gmail.com](mailto:support@yourcompany.com)
-        """)
-
-    st.write("""
-        This application is designed to improve condition monitoring and maintenance tracking for Indorama Petrochemicals Ltd.
-        For assistance or feedback, please reach out via the support link above.
-        """)
 
     st.write("---")
 
