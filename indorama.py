@@ -372,7 +372,7 @@ def calculate_kpis(file_path):
     }
 
 # Display the logo at the top of the homepage
-st.image(indorama_logo.png, use_container_width=True)
+st.image("indorama_logo.png", use_container_width=True)
 
 # Main Page Functionality
 if "page" not in st.session_state:
