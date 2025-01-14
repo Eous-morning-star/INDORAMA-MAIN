@@ -372,7 +372,7 @@ def calculate_kpis(file_path):
     }
 
 # Display the logo at the top of the homepage
-st.image("indorama_logo.png", use_container_width=True, width=200)
+st.image("indorama_logo.png", use_container_width=True)
 
 # Main Page Functionality
 if "page" not in st.session_state:
@@ -381,7 +381,10 @@ if "page" not in st.session_state:
 if st.session_state.page == "main":
         #Main Page
     st.subheader("Your Gateway to Enhanced Maintenance Efficiency")
-
+    st.markdown(
+        '<h4 style="font-size:18px; color:inherit;">Your Gateway to Enhanced Maintenance Efficiency</h4>',
+        unsafe_allow_html=True
+)
     # Greeting Based on Time
     current_hour = datetime.now().hour
     if current_hour < 12:
