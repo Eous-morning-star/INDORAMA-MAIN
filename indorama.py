@@ -371,6 +371,10 @@ def calculate_kpis(file_path):
         "data": data
     }
 
+# Display the logo at the top of the homepage
+st.image("indorama_logo.png", use_column_width=True, caption="Indorama Petrochemicals Ltd")
+st.image("indorama_logo.png", width=300, caption="Indorama Petrochemicals Ltd")
+
 # Set page title
 st.set_page_config(page_title="Indorama Petrochemicals Ltd", layout="wide")
 
