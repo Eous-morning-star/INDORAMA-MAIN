@@ -1,0 +1,3 @@
+Date,Area,Equipment,Is Running,High Priority,Driving End Temp,Driven End Temp,Oil Level,Abnormal Sound,Leakage,Observation,RMS Velocity (mm/s),Peak Acceleration (g),Displacement (µm),Gearbox Temp,Gearbox Oil Level,Gearbox Leakage,Gearbox Abnormal Sound,Gearbox RMS Velocity (mm/s),Gearbox Peak Acceleration (g),Gearbox Displacement (µm)
+2025-01-14,Reaction,3-P-101,False,False,0.0,0.0,N/A,N/A,N/A,Not Running,0.0,0.0,0.0,0.0,N/A,N/A,N/A,0.0,0.0,0.0
+2025-01-14,Reaction,3-P-101,False,False,0.0,0.0,N/A,N/A,N/A,Not Running,0.0,0.0,0.0,0.0,N/A,N/A,N/A,0.0,0.0,0.0
