@@ -312,7 +312,7 @@ equipment_thresholds = ({
 })
 
 # Define the file path at the top of the script
-file_path = "data/condition_data.csv"
+file_path = "data/Condition_Monitoring_Data_2024.csv"
 
 
 # Create the directory if it doesn't exist
