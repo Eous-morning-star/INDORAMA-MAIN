@@ -871,7 +871,7 @@ elif st.session_state.page == "monitoring":
 
                     # Save to CSV
                     df = pd.DataFrame(data)
-                    file_path = "data/condition_data.csv"
+                    file_path = "data/Condition_Monitoring_Data_2024.csv"
                     if not os.path.exists("data"):
                         os.makedirs("data")
                     if os.path.exists(file_path):
@@ -887,7 +887,7 @@ elif st.session_state.page == "monitoring":
     # Tab 2: Reports and Visualizations
     with tab2:
         st.header("Reports and Visualization")
-        file_path = "data/condition_data.csv"
+        file_path = "data/Condition_Monitoring_Data_2024.csv"
 
         # Load data
         data = load_data(file_path)
