@@ -17,7 +17,7 @@ st.markdown(
 
     /* Add black shadow to headings */
     h1, h2, h3, h4, h5, h6 {
-        text-shadow: 3px 3px 5px black !important;
+        text-shadow: 3px 3px 5px white !important;
     }
 
     /* Style Streamlit buttons */
