@@ -24,7 +24,7 @@ st.markdown(
 
     /* Ensure text is visible over the background */
     body, .stApp {
-        color: blue !important; /* Change to black if needed */
+        color: green !important; /* Change to black if needed */
     }
     </style>
     """,
