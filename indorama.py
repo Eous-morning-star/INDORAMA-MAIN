@@ -370,9 +370,6 @@ def calculate_kpis(file_path):
         "running_percentage": f"{running_percentage:.2f}%",
         "data": data
     }
-
-# Call the function to set the background
-set_background("picture.jng")
     
 # Display the logo at the top of the homepage
 st.image("indorama_logo.png", use_container_width=True)
