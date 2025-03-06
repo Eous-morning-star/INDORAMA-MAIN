@@ -14,7 +14,7 @@ st.markdown(
     /* Make all text bold */
     h1, h2, h3, h4, h5, h6, p, label {
         font-weight: bold !important;
-        font-size: 18px !important; /* Increase font size for better readability */
+        font-size: 20px !important; /* Increase font size for better readability */
     }
 
     /* Add shadow to headings to improve contrast */
@@ -24,7 +24,7 @@ st.markdown(
 
     /* Ensure text is visible over the background */
     body, .stApp {
-        color: blue !important; /* Change to black if needed */
+        color: grey !important; /* Change to black if needed */
     }
     </style>
     """,
