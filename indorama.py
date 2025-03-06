@@ -7,29 +7,32 @@ import base64
 
 import streamlit as st
 
-# Apply CSS to make text bold and more readable
+import streamlit as st  # Keep this at the top
+
+# Apply CSS to make text bold and readable with black shadow
 st.markdown(
     """
     <style>
     /* Make all text bold */
     h1, h2, h3, h4, h5, h6, p, label {
         font-weight: bold !important;
-        font-size: 20px !important; /* Increase font size for better readability */
+        font-size: 18px !important; /* Increase font size */
     }
 
-    /* Add shadow to headings to improve contrast */
+    /* Add BLACK shadow to headings for better contrast */
     h1, h2, h3, h4, h5, h6 {
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* Hard shadow */
+        text-shadow: 3px 3px 5px black !important; /* Stronger black shadow */
     }
 
     /* Ensure text is visible over the background */
     body, .stApp {
-        color: green !important; /* Change to black if needed */
+        color: white !important; /* Change to black if needed */
     }
     </style>
     """,
     unsafe_allow_html=True
 )
+
 
 # Define deviation thresholds for specific equipment
 equipment_thresholds = ({
