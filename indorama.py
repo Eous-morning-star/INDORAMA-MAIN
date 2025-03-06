@@ -5,34 +5,41 @@ from datetime import datetime, timedelta
 import plotly.express as px
 import base64
 
-import streamlit as st
-
-import streamlit as st  # Keep this at the top
-
-# Apply CSS to make text bold and readable with black shadow
+# Apply CSS for black buttons
 st.markdown(
     """
     <style>
     /* Make all text bold */
     h1, h2, h3, h4, h5, h6, p, label {
         font-weight: bold !important;
-        font-size: 18px !important; /* Increase font size */
+        font-size: 18px !important;
     }
 
-    /* Add BLACK shadow to headings for better contrast */
+    /* Add black shadow to headings */
     h1, h2, h3, h4, h5, h6 {
-        text-shadow: 3px 3px 5px black !important; /* Stronger black shadow */
+        text-shadow: 3px 3px 5px black !important;
     }
 
-    /* Ensure text is visible over the background */
-    body, .stApp {
-        color: black !important; /* Change to black if needed */
+    /* Style Streamlit buttons */
+    div.stButton > button {
+        background-color: black !important;
+        color: white !important;
+        border-radius: 10px !important;
+        padding: 10px 20px !important;
+        font-size: 16px !important;
+        font-weight: bold !important;
+        border: 2px solid white !important;
+    }
+
+    /* Change button color when hovered */
+    div.stButton > button:hover {
+        background-color: #333 !important;  /* Darker black on hover */
+        color: white !important;
     }
     </style>
     """,
     unsafe_allow_html=True
 )
-
 
 # Define deviation thresholds for specific equipment
 equipment_thresholds = ({
