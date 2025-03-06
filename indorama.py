@@ -354,7 +354,7 @@ equipment_thresholds = ({
 })
 
 # Define the file path at the top of the script
-file_path = "data/llf.csv"
+file_path = "data/condition_data.csv"
 
 
 # Create the directory if it doesn't exist
@@ -933,7 +933,7 @@ elif st.session_state.page == "monitoring":
 
                     # Save to CSV
                     df = pd.DataFrame(data)
-                    file_path = "data/llf.csv"
+                    file_path = "data/condition_data.csv"
                     if not os.path.exists("data"):
                         os.makedirs("data")
                     if os.path.exists(file_path):
@@ -949,7 +949,7 @@ elif st.session_state.page == "monitoring":
     # Tab 2: Reports and Visualizations
     with tab2:
         st.header("Reports and Visualization")
-        file_path = "data/llf.csv"
+        file_path = "data/condition_data.csv"
 
         # Load data
         data = load_data(file_path)
