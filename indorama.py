@@ -371,6 +371,20 @@ def calculate_kpis(file_path):
         "data": data
     }
 
+def set_background(image_url):
+    """
+    Function to set a background image in Streamlit
+    """
+    page_bg_img = f"""
+    <style>
+    .stApp {{
+        background: url("{picture.jpg}") no-repeat center center fixed;
+        background-size: cover;
+    }}
+    </style>
+    """
+    st.markdown(page_bg_img, unsafe_allow_html=True)
+    
 # Display the logo at the top of the homepage
 st.image("indorama_logo.png", use_container_width=True)
 
