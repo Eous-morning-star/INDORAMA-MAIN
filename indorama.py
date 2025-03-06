@@ -391,7 +391,7 @@ def set_background(image_path):
     )
 
 # Use the correct file path
-set_background("https://raw.githubusercontent.com/Eous-morning-star/INDORAMA-MAIN/refs/heads/main/picture.jpg")
+set_background("https://raw.githubusercontent.com/Eous-morning-star/INDORAMA-MAIN/refs/heads/main/picture.jpg?token=GHSAT0AAAAAAC73W2LUO7DDEAO3IFD2GMHAZ6J2OXA")
 
 # Display the logo at the top of the homepage
 st.image("indorama_logo.png", use_container_width=True)
