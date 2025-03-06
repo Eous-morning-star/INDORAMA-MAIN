@@ -20,6 +20,11 @@ st.markdown(
         text-shadow: 3px 3px 5px white !important;
     }
 
+    /* Ensure text is visible over the background */
+    body, .stApp {
+        color: white !important; /* Change to black if needed */
+    }
+    
     /* Style Streamlit buttons */
     div.stButton > button {
         background-color: black !important;
