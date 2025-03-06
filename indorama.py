@@ -383,6 +383,27 @@ def set_background(image_url):
             background-position: center;
             background-attachment: fixed;
             background-repeat: no-repeat;
+            position: relative;
+        }}
+
+        /* Darken the background with an overlay */
+        .stApp::before {{
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3); /* Adjust opacity: 0.3 (light) to 0.7 (dark) */
+            z-index: -1;
+        }}
+
+        /* Make text bold and add shadow */
+        h1, h2, h3, h4, h5, h6, p, label {{
+            font-weight: bold !important;
+            font-size: 18px !important; /* Adjust size */
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* Soft shadow */
+            color: white !important; /* Ensures high contrast */
         }}
         </style>
         """,
