@@ -3,6 +3,7 @@ import pandas as pd
 import os
 from datetime import datetime, timedelta
 import plotly.express as px
+import base64
 
 # Define deviation thresholds for specific equipment
 equipment_thresholds = ({
@@ -370,7 +371,28 @@ def calculate_kpis(file_path):
         "running_percentage": f"{running_percentage:.2f}%",
         "data": data
     }
-    
+
+# Function to set background image
+def set_background(image_path):
+    with open(image_path, "rb") as image:
+        encoded = base64.b64encode(image.read()).decode()
+    st.markdown(
+        f"""
+        <style>
+        .stApp {{
+            background-image: url("data:image/png;base64,{encoded}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+# Use the correct file path
+set_background("data/picture.jpg")
+
 # Display the logo at the top of the homepage
 st.image("indorama_logo.png", use_container_width=True)
 
