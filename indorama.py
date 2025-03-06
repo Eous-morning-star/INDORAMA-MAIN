@@ -5,6 +5,32 @@ from datetime import datetime, timedelta
 import plotly.express as px
 import base64
 
+import streamlit as st
+
+# Apply CSS to make text bold and more readable
+st.markdown(
+    """
+    <style>
+    /* Make all text bold */
+    h1, h2, h3, h4, h5, h6, p, label {
+        font-weight: bold !important;
+        font-size: 18px !important; /* Increase font size for better readability */
+    }
+
+    /* Add shadow to headings to improve contrast */
+    h1, h2, h3, h4, h5, h6 {
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* Soft shadow */
+    }
+
+    /* Ensure text is visible over the background */
+    body, .stApp {
+        color: white !important; /* Change to black if needed */
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # Define deviation thresholds for specific equipment
 equipment_thresholds = ({
     # Reaction Area
