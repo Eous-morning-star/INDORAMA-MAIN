@@ -372,7 +372,7 @@ def calculate_kpis(file_path):
         "data": data
     }
 
-# Function to set background image using an online image (GitHub raw URL)
+# Function to set background image from an online URL
 def set_background(image_url):
     st.markdown(
         f"""
@@ -381,6 +381,7 @@ def set_background(image_url):
             background-image: url("{image_url}");
             background-size: cover;
             background-position: center;
+            background-attachment: fixed;
             background-repeat: no-repeat;
         }}
         </style>
@@ -388,8 +389,8 @@ def set_background(image_url):
         unsafe_allow_html=True
     )
 
-# Use the correct GitHub raw URL
-set_background("https://raw.githubusercontent.com/Eous-morning-star/INDORAMA-MAIN/refs/heads/main/picture.jpg?token=GHSAT0AAAAAAC73W2LUO7DDEAO3IFD2GMHAZ6J2OXA")
+# Use the corrected GitHub raw image URL
+set_background("https://raw.githubusercontent.com/Eous-morning-star/INDORAMA-MAIN/main/picture.jpg")
 
 # Display the logo at the top of the homepage
 st.image("indorama_logo.png", use_container_width=True)
