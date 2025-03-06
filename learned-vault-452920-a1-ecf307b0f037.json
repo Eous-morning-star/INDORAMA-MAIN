@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "learned-vault-452920-a1",
+  "private_key_id": "ecf307b0f03731bb2682411cbc65421466109616",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDYTh4/puhf0EmO\nkuWuquahqnbuoDjKggnbsL49tRnxkt5oGZQcoZ2oKEMlLVNX+LfCHkK+E7Jbjr8t\nSjVV60yFF8jooNoJnllQzlEktyMJOWF7OAJisZ5g08vAoA38dwBbLU55ZhUv/T11\ndGNP/VpknyTR6EBDtbsfaFo8U7pmHDZ7+WrrjzbaW1vByp7m6JfEY8eEZTCgo+mu\nGwqBfhbWsKbi4/cxXKFKvIKHnsDnrwUt7kf54MtwGkTq2TzkxCkzsEZ+fizmxPzz\nC787TvHI0X9/6rTrDb6W5Vg6YRgRSFWnRAwTqjB5g+/ISL1HNAsVEV48d7DIvn49\nZ6PIkPGXAgMBAAECggEAEXwnF9AfLUzsqpjB9kpHAGnY2VXxoUpnukQ27KK3aSli\necRvjkJGOJygk4sZbJ1kr/gQPxs1Kg+HnAVJUHEH1iO5EDedyHSYwF5yfWb3GbzI\ns37bOoJ5zKvyPCzz/yTYzjCtt5nX5pwwRqP/jyy/Yi43JLytzTYN3UPAikCJFc3V\n8HdqznT9NQoR5icEG5nfKGapDrb6wFSKWKIHSitKTUnuUHq6I5/KvWr4iOMkbrcg\nKYqqIDjDWuT3TzB2kWDwUcPH1DqFpLoOspkR0ZPIZyqPUybUg0CN+CGncvVd2jod\nnvGwQcoyWy03YOwvZ2RV69HQGxIbYFdwmPEpOs/woQKBgQD3kqkZ+eDmmeNL8obk\nIoa7ejPBBP5R6PSTjl7qsfJYOgWrIcNHIb9XRILuiVk9xjA12z1bhXwSYHX8ijtF\nJXo1vAI+VPmJ3VACGnHImV6LVyWaiPUGEc3kbf9gUbZWphXvY0B4l12pL89wOOS2\nphATvoiFAZChlIO+S6bFuxqnJwKBgQDfqv3peWHZqlkGcLdi80G4nTcv8NjC4m/S\nvbOGxyAvyf/4h3XFYwHlgIM5kkTN3Ib/nSpcFi9MRR61KVSLXbMuZ2Pb/o7W1+yP\nJoJ1Tf0gUD/uzejkwdd2pTQksOD3l7Aciao3hQHk886hYS7CDA9diLT0gY6O3kV/\nH+Gnh3xoEQKBgBmU+gxJGcg6VpZedTnVp35v3jEvxufH3p3wtDYkNRqQxE0uq/MJ\nta/a0Hy9jI8pj4nBIdH3NR7hANAbqIw4lyw+RS0TssVgLQhKmz9TOcXEN4qEZG1A\nIbpc82qMhv7lIpcd9md/nJoC6rh56IhHGJoxsgGsa7mGkyZywsTj1Jk5AoGACrWj\nRsSbHNL9REOtZD2FjhNpCxCbMGmrNQoESJXMQr2HVh0WVIczFgwbPGx2guzmQeMC\nnjoptZsxpzb9Z1brN3OX4nbD3CGmoAwV/wvm7N8q0IJnflyRtoqefotBmllXA2bM\nEbB6sL3DzRJcLMprCe17zKFPdCPMbBPYuC7SlCECgYEAum3g7jYD6wewwer1KfQ0\n2Q00fBCzelxT39TPkKNlEN1vqwj6alycqiT8lrtUMC15tA4beyk4j/JA5lrhI0BV\nwK2+dCiHJcP9r0JXFlPBnGvq7eIBoUoxezLuIKslxiarY+/LvqyFKVf9KE6Nb0Ua\nybPOcKk36h5HkCRvB3U2K1o=\n-----END PRIVATE KEY-----\n",
+  "client_email": "kendlucifer@learned-vault-452920-a1.iam.gserviceaccount.com",
+  "client_id": "103180703359882227238",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/kendlucifer%40learned-vault-452920-a1.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
