@@ -4,6 +4,8 @@ import os
 from datetime import datetime, timedelta
 import plotly.express as px
 import base64
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 
 # Apply CSS for black buttons
 st.markdown(
