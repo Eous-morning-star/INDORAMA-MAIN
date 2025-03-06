@@ -19,12 +19,12 @@ st.markdown(
 
     /* Add shadow to headings to improve contrast */
     h1, h2, h3, h4, h5, h6 {
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* Soft shadow */
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* Hard shadow */
     }
 
     /* Ensure text is visible over the background */
     body, .stApp {
-        color: black !important; /* Change to black if needed */
+        color: blue !important; /* Change to black if needed */
     }
     </style>
     """,
