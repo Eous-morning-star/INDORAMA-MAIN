@@ -716,38 +716,53 @@ if st.session_state.page == "main":
         st.session_state.page = "monitoring"
 
 elif st.session_state.page == "high_priority_dashboard":
-    st.title("High Priority Equipment Dashboard")
+    # High Priority Equipment Section
+st.subheader("📊 High Priority Equipment Dashboard")
 
-    # Load data
-    data = load_data()
+# Load the data
+data = load_data()
 
-    if data.empty:
-        st.warning("No data available. Please enter condition monitoring data first.")
+if data.empty:
+    st.warning("No data available. Please enter condition monitoring data first.")
+else:
+    # Filter high-priority equipment
+    high_priority_data = data[data["High Priority"] == True]
+
+    if high_priority_data.empty:
+        st.info("No equipment is marked as high priority.")
     else:
-        # Filter high-priority equipment
-        high_priority_data = data[data["High Priority"] == True]
+        # ✅ Add a date filter option
+        st.write("### Filter by Date or Date Range")
+        filter_option = st.radio(
+            "Select Filter Type",
+            ["Date Range", "Specific Day"],
+            key="high_priority_filter_type"
+        )
 
-        if high_priority_data.empty:
-            st.info("No equipment is marked as high priority.")
-        else:
-            # Add date filters
+        high_priority_data["Date"] = pd.to_datetime(high_priority_data["Date"], errors="coerce")
+
+        if filter_option == "Date Range":
             start_date = st.date_input("Start Date", value=datetime(2023, 1, 1), key="high_priority_start_date")
             end_date = st.date_input("End Date", value=datetime.now(), key="high_priority_end_date")
 
-            # Filter data by date range
-            high_priority_data["Date"] = pd.to_datetime(high_priority_data["Date"])
             filtered_data = high_priority_data[
-                (high_priority_data["Date"] >= start_date) &
-                (high_priority_data["Date"] <= end_date)
+                (high_priority_data["Date"] >= pd.Timestamp(start_date)) & 
+                (high_priority_data["Date"] <= pd.Timestamp(end_date))
             ]
 
-            st.subheader("High Priority Equipment")
-            st.dataframe(filtered_data)
+        elif filter_option == "Specific Day":
+            selected_date = st.date_input("Select Date", value=datetime.now(), key="high_priority_specific_date")
 
-            # Downloadable CSV for High Priority Equipment
-            st.write("#### Download High Priority Report")
-            csv = filtered_data.to_csv(index=False)
-            st.download_button("Download as CSV", data=csv, file_name="high_priority_report.csv", mime="text/csv")
+            filtered_data = high_priority_data[high_priority_data["Date"] == pd.Timestamp(selected_date)]
+
+        # ✅ Display filtered high-priority equipment
+        st.subheader("Filtered High Priority Equipment")
+        st.dataframe(filtered_data)
+
+        # ✅ Downloadable CSV for High Priority Equipment
+        st.write("#### Download High Priority Report")
+        csv = filtered_data.to_csv(index=False)
+        st.download_button("Download as CSV", data=csv, file_name="high_priority_report.csv", mime="text/csv")
 
 elif st.session_state.page == "monitoring":
 
