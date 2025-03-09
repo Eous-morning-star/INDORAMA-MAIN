@@ -822,9 +822,14 @@ elif st.session_state.page == "monitoring":
         equipment_options = equipment_lists.get(area, [])
         equipment = st.selectbox("Select Equipment", options=equipment_options, key="equipment")
 
-
-        # Tick box for "Is the equipment running?"
+        # Checkbox for "Is the equipment running?"
         is_running = st.checkbox("Is the equipment running?", key="is_running")
+        
+        # ✅ Initialize 'high_priority' before using it
+        high_priority = False  # Default value
+        
+        if is_running:
+            high_priority = st.checkbox("Mark as High Priority", key="high_priority")
 
         # Data Entry Fields
         if is_running:
