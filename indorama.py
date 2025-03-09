@@ -883,43 +883,47 @@ elif st.session_state.page == "monitoring":
 
         # Submit Button
         if st.button("Submit Data"):
-            try:
-                new_data = pd.DataFrame([{
-                    "Date": date,
-                    "Area": area,
-                    "Equipment": equipment,
-                    "Is Running": is_running,
-                    "High Priority": high_priority,
-                    "Driving End Temp": de_temp if is_running else 0.0,
-                    "Driven End Temp": dr_temp if is_running else 0.0,
-                    "Oil Level": oil_level if is_running else "N/A",
-                    "Abnormal Sound": abnormal_sound if is_running else "N/A",
-                    "Leakage": leakage if is_running else "N/A",
-                    "Observation": observation if is_running else "Not Running",
-                    "RMS Velocity (mm/s)": vibration_rms_velocity if is_running else 0.0,
-                    "Peak Acceleration (g)": vibration_peak_acceleration if is_running else 0.0,
-                    "Displacement (µm)": vibration_displacement if is_running else 0.0,
-                    "Gearbox Temp": gearbox_temp if gearbox else 0.0,
-                    "Gearbox Oil Level": gearbox_oil if gearbox else "N/A",
-                    "Gearbox Leakage": gearbox_leakage if gearbox else "N/A",
-                    "Gearbox Abnormal Sound": gearbox_abnormal_sound if gearbox else "N/A",
-                    "Gearbox RMS Velocity (mm/s)": gearbox_vibration_rms_velocity if gearbox else 0.0,
-                    "Gearbox Peak Acceleration (g)": gearbox_vibration_peak_acceleration if gearbox else 0.0,
-                    "Gearbox Displacement (µm)": gearbox_vibration_displacement if gearbox else 0.0
-                }])
-
-                # ✅ Load existing data & append new row
+        try:
+            new_data = pd.DataFrame([{
+                "Date": date,
+                "Area": area,
+                "Equipment": equipment,
+                "Is Running": is_running,
+                "High Priority": high_priority if 'high_priority' in locals() else False,  # Avoid undefined variable error
+                "Driving End Temp": de_temp if is_running else 0.0,
+                "Driven End Temp": dr_temp if is_running else 0.0,
+                "Oil Level": oil_level if is_running else "N/A",
+                "Abnormal Sound": abnormal_sound if is_running else "N/A",
+                "Leakage": leakage if is_running else "N/A",
+                "Observation": observation if is_running else "Not Running",
+                "RMS Velocity (mm/s)": vibration_rms_velocity if is_running else 0.0,
+                "Peak Acceleration (g)": vibration_peak_acceleration if is_running else 0.0,
+                "Displacement (µm)": vibration_displacement if is_running else 0.0,
+                "Gearbox Temp": gearbox_temp if 'gearbox' in locals() and gearbox else 0.0,
+                "Gearbox Oil Level": gearbox_oil if 'gearbox' in locals() and gearbox else "N/A",
+                "Gearbox Leakage": gearbox_leakage if 'gearbox' in locals() and gearbox else "N/A",
+                "Gearbox Abnormal Sound": gearbox_abnormal_sound if 'gearbox' in locals() and gearbox else "N/A",
+                "Gearbox RMS Velocity (mm/s)": gearbox_vibration_rms_velocity if 'gearbox' in locals() and gearbox else 0.0,
+                "Gearbox Peak Acceleration (g)": gearbox_vibration_peak_acceleration if 'gearbox' in locals() and gearbox else 0.0,
+                "Gearbox Displacement (µm)": gearbox_vibration_displacement if 'gearbox' in locals() and gearbox else 0.0
+            }])
+    
+            # ✅ Ensure Google Sheets connection exists
+            if sheet:
                 existing_data = sheet.get_all_records()
                 df = pd.DataFrame(existing_data)
                 df = pd.concat([df, new_data], ignore_index=True)
-        
+            
                 # ✅ Save updated data to Google Sheets
                 sheet.clear()
                 sheet.update([df.columns.values.tolist()] + df.values.tolist())
-        
+            
                 st.success("✅ Data saved to Google Sheets!")
-            except Exception as e:
-                st.error(f"Error saving data: {e}")
+            else:
+                st.error("❌ Unable to save data: Google Sheet connection is missing.")
+        except Exception as e:
+            st.error(f"Error saving data: {e}")
+
 
     # Tab 2: Reports and Visualizations
     with tab2:
