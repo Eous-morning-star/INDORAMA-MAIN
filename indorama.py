@@ -479,7 +479,7 @@ if st.session_state.page == "main":
 
     # Display KPIs
     st.subheader("Key Performance Indicators (KPIs)")
-    kpis = calculate_kpis(file_path)
+    kpis = calculate_kpis()
     col1, col2, col3 = st.columns(3)
     col1.metric("Compliance Rate", kpis["compliance_rate"])
     col2.metric("Average Temperature", kpis["avg_temp"])
