@@ -680,7 +680,7 @@ else:
     if st.button("Next"):
         st.session_state.page = "monitoring"
 
-elif st.session_state.page == "monitoring":
+    elif st.session_state.page == "monitoring":
 
     def filter_data(df, equipment, start_date, end_date):
         """Filter data by equipment and date range."""
