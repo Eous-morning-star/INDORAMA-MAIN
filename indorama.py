@@ -411,6 +411,9 @@ def calculate_kpis():
             "data": pd.DataFrame()
         }
 
+    # ✅ Convert "Is Running" column to numeric (1 for True, 0 for False)
+    data["Is Running"] = pd.to_numeric(data["Is Running"], errors="coerce")
+
     compliance_rate = data["Is Running"].mean() * 100
     avg_temp = data[["Driving End Temp", "Driven End Temp"]].mean().mean()
     running_percentage = (data["Is Running"].sum() / len(data)) * 100
