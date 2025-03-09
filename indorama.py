@@ -860,6 +860,7 @@ elif st.session_state.page == "monitoring":
             # Add a checkbox for marking equipment as high priority
             high_priority = st.checkbox(
     "Mark as High Priority", key=f"high_priority_{equipment}_{date}"
+)
 
             # Gearbox Inputs
             gearbox = st.checkbox(
