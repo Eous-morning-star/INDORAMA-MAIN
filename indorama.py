@@ -490,44 +490,6 @@ if st.session_state.page == "main":
     col2.metric("Average Temperature", kpis["avg_temp"])
     col3.metric("Running Equipment", kpis["running_percentage"])
 
-
-    # High Priority Dashboard Section
-    st.write("---")  # Separator line
-    st.subheader("📊 High Priority Equipment Dashboard")
-
-    # Load the data
-    data = load_data()
-
-    if data.empty:
-        st.warning("No data available. Please enter condition monitoring data first.")
-    else:
-        # Filter high-priority equipment
-        high_priority_data = data[data["High Priority"] == True]
-
-        if high_priority_data.empty:
-            st.info("No equipment is marked as high priority.")
-        else:
-            # Add date filters for high-priority equipment
-            st.write("#### Filter by Date Range")
-            start_date = st.date_input("Start Date", value=datetime(2023, 1, 1), key="high_priority_start_date")
-            end_date = st.date_input("End Date", value=datetime.now(), key="high_priority_end_date")
-
-            # Filter data by date range
-            high_priority_data["Date"] = pd.to_datetime(high_priority_data["Date"], errors="coerce")
-            filtered_data = high_priority_data[
-                (high_priority_data["Date"] >= pd.Timestamp(start_date)) &
-                (high_priority_data["Date"] <= pd.Timestamp(end_date))
-                ]
-
-            # Display filtered high-priority equipment
-            st.subheader("High Priority Equipment")
-            st.dataframe(filtered_data)
-
-            # Downloadable CSV for High Priority Equipment
-            st.write("#### Download High Priority Report")
-            csv = filtered_data.to_csv(index=False)
-            st.download_button("Download as CSV", data=csv, file_name="high_priority_report.csv", mime="text/csv")
-
     st.write("---")
 
     # Weekly Report Dashboard
