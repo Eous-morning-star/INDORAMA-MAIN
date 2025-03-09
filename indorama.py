@@ -7,14 +7,11 @@ import base64
 import gspread
 from google.oauth2.service_account import Credentials
 
-import streamlit as st
-import gspread
-from google.oauth2.service_account import Credentials
-
-# ✅ Authenticate Google Sheets with secrets
+# ✅ Authenticate Google Sheets with the correct scope
 def authenticate_google_sheets():
     try:
-        creds = Credentials.from_service_account_info(st.secrets["GOOGLE_SHEET_KEY"])
+        scopes = ["https://www.googleapis.com/auth/spreadsheets"]  # Correct scope
+        creds = Credentials.from_service_account_info(st.secrets["GOOGLE_SHEET_KEY"], scopes=scopes)
         return gspread.authorize(creds)
     except Exception as e:
         st.error(f"❌ Google Sheets authentication failed: {e}")
@@ -25,6 +22,7 @@ client = authenticate_google_sheets()
 if client:
     try:
         sheet = client.open("INDORAMA LLF").worksheet("Sheet1")
+        st.success("✅ Connected to Google Sheets successfully!")
     except Exception as e:
         st.error(f"❌ Unable to open Google Sheet: {e}")
 else:
