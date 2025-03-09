@@ -859,7 +859,7 @@ elif st.session_state.page == "monitoring":
 
         # Submit Button
         if st.button("Submit Data"):
-    try:
+          try:
         new_data = pd.DataFrame([{
             "Date": date,
             "Area": area,
