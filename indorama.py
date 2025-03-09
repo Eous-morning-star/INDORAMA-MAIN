@@ -841,7 +841,9 @@ elif st.session_state.page == "monitoring":
         high_priority = False  # Default value
         
         if is_running:
-            high_priority = st.checkbox("Mark as High Priority", key="high_priority")
+           high_priority = st.checkbox(
+    "Mark as High Priority", key=f"high_priority_{equipment}_{date}"
+)
 
         # Data Entry Fields
         if is_running:
