@@ -10,7 +10,9 @@ from google.oauth2.service_account import Credentials
 # ✅ Authenticate Google Sheets with the correct scope
 def authenticate_google_sheets():
     try:
-        scopes = ["https://www.googleapis.com/auth/spreadsheets"]  # Correct scope
+        scopes = ["https://www.googleapis.com/auth/spreadsheets", 
+                  "https://www.googleapis.com/auth/drive"]  # Added Drive access for permission issues
+        
         creds = Credentials.from_service_account_info(st.secrets["GOOGLE_SHEET_KEY"], scopes=scopes)
         return gspread.authorize(creds)
     except Exception as e:
