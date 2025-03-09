@@ -834,8 +834,9 @@ elif st.session_state.page == "monitoring":
         gearbox = False  # Default value
         
         if is_running:
-            gearbox = st.checkbox("Does the equipment have a gearbox?", key="gearbox")
-
+            gearbox = st.checkbox(
+    "Does the equipment have a gearbox?", key=f"gearbox_{equipment}_{date}"
+)
         
         # ✅ Initialize 'high_priority' before using it
         high_priority = False  # Default value
