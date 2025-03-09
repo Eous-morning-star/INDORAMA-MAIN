@@ -490,6 +490,44 @@ if st.session_state.page == "main":
     col2.metric("Average Temperature", kpis["avg_temp"])
     col3.metric("Running Equipment", kpis["running_percentage"])
 
+
+    # High Priority Dashboard Section
+    st.write("---")  # Separator line
+    st.subheader("📊 High Priority Equipment Dashboard")
+
+    # Load the data
+    data = load_data()
+
+    if data.empty:
+        st.warning("No data available. Please enter condition monitoring data first.")
+    else:
+        # Filter high-priority equipment
+        high_priority_data = data[data["High Priority"] == True]
+
+        if high_priority_data.empty:
+            st.info("No equipment is marked as high priority.")
+        else:
+            # Add date filters for high-priority equipment
+            st.write("#### Filter by Date Range")
+            start_date = st.date_input("Start Date", value=datetime(2023, 1, 1), key="high_priority_start_date")
+            end_date = st.date_input("End Date", value=datetime.now(), key="high_priority_end_date")
+
+            # Filter data by date range
+            high_priority_data["Date"] = pd.to_datetime(high_priority_data["Date"], errors="coerce")
+            filtered_data = high_priority_data[
+                (high_priority_data["Date"] >= pd.Timestamp(start_date)) &
+                (high_priority_data["Date"] <= pd.Timestamp(end_date))
+                ]
+
+            # Display filtered high-priority equipment
+            st.subheader("High Priority Equipment")
+            st.dataframe(filtered_data)
+
+            # Downloadable CSV for High Priority Equipment
+            st.write("#### Download High Priority Report")
+            csv = filtered_data.to_csv(index=False)
+            st.download_button("Download as CSV", data=csv, file_name="high_priority_report.csv", mime="text/csv")
+
     st.write("---")
 
     # Weekly Report Dashboard
@@ -677,6 +715,57 @@ if st.session_state.page == "main":
     if st.button("Next"):
         st.session_state.page = "monitoring"
 
+elif st.session_state.page == "high_priority_dashboard":
+        # High Priority Equipment Section
+    st.subheader("📊 High Priority Equipment Dashboard")
+    
+    # Load the data
+    data = load_data()
+    
+    if data.empty:
+        st.warning("No data available. Please enter condition monitoring data first.")
+    else:
+        # Filter high-priority equipment
+        high_priority_data = data[data["High Priority"] == True]
+    
+        if high_priority_data.empty:
+            st.info("No equipment is marked as high priority.")
+        else:
+            # ✅ Add a date filter option
+            st.write("### Filter by Date or Date Range")
+            filter_option = st.radio(
+                "Select Filter Type",
+                ["Date Range", "Specific Day"],
+                key="high_priority_filter_type"
+            )
+    
+            high_priority_data["Date"] = pd.to_datetime(high_priority_data["Date"], errors="coerce")
+    
+            if filter_option == "Date Range":
+                start_date = st.date_input("Start Date", value=datetime(2023, 1, 1), key="high_priority_start_date")
+                end_date = st.date_input("End Date", value=datetime.now(), key="high_priority_end_date")
+    
+                filtered_data = high_priority_data[
+                    (high_priority_data["Date"] >= pd.Timestamp(start_date)) & 
+                    (high_priority_data["Date"] <= pd.Timestamp(end_date))
+                ]
+    
+            elif filter_option == "Specific Day":
+                selected_date = st.date_input("Select Date", value=datetime.now(), key="high_priority_specific_date")
+    
+                filtered_data = high_priority_data[high_priority_data["Date"] == pd.Timestamp(selected_date)]
+    
+            # ✅ Display filtered high-priority equipment
+            st.subheader("Filtered High Priority Equipment")
+            st.dataframe(filtered_data)
+    
+            # ✅ Downloadable CSV for High Priority Equipment
+            st.write("#### Download High Priority Report")
+            csv = filtered_data.to_csv(index=False)
+            st.download_button("Download as CSV", data=csv, file_name="high_priority_report.csv", mime="text/csv")
+
+elif st.session_state.page == "monitoring":
+
     def filter_data(df, equipment, start_date, end_date):
         """Filter data by equipment and date range."""
         df["Date"] = pd.to_datetime(df["Date"])  # Convert Date column to datetime
@@ -759,6 +848,9 @@ if st.session_state.page == "main":
         # ✅ Initialize 'gearbox' before using it
         gearbox = False  # Default value
         
+        # ✅ Initialize 'high_priority' before using it
+        high_priority = False  # Default value
+        
         # Data Entry Fields
         if is_running:
             de_temp = st.number_input("Driving End Temperature (°C)", min_value=0.0, max_value=200.0, step=0.1,
@@ -779,6 +871,11 @@ if st.session_state.page == "main":
                                                           key="vibration_peak_acceleration")
             vibration_displacement = st.number_input("Displacement (µm)", min_value=0.0, max_value=1000.0, step=0.1,
                                                      key="vibration_displacement")
+
+            # Add a checkbox for marking equipment as high priority
+            high_priority = st.checkbox(
+    "Mark as High Priority", key=f"high_priority_{equipment}_{date}"
+)
 
             # Gearbox Inputs
             gearbox = st.checkbox(
@@ -809,6 +906,7 @@ if st.session_state.page == "main":
                     "Area": area,
                     "Equipment": equipment,
                     "Is Running": is_running,
+                    "High Priority": bool(high_priority),  # Avoid undefined variable error
                     "Driving End Temp": de_temp if is_running else 0.0,
                     "Driven End Temp": dr_temp if is_running else 0.0,
                     "Oil Level": oil_level if is_running else "N/A",
