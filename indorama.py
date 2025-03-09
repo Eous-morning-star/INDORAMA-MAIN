@@ -833,19 +833,9 @@ elif st.session_state.page == "monitoring":
         # ✅ Initialize 'gearbox' before using it
         gearbox = False  # Default value
         
-        if is_running:
-            gearbox = st.checkbox(
-    "Does the equipment have a gearbox?", key=f"gearbox_{equipment}_{date}"
-)
-        
         # ✅ Initialize 'high_priority' before using it
         high_priority = False  # Default value
         
-        if is_running:
-           high_priority = st.checkbox(
-    "Mark as High Priority", key=f"high_priority_{equipment}_{date}"
-)
-
         # Data Entry Fields
         if is_running:
             de_temp = st.number_input("Driving End Temperature (°C)", min_value=0.0, max_value=200.0, step=0.1,
@@ -868,10 +858,13 @@ elif st.session_state.page == "monitoring":
                                                      key="vibration_displacement")
 
             # Add a checkbox for marking equipment as high priority
-            high_priority = st.checkbox("Mark as High Priority", key="high_priority")
+            high_priority = st.checkbox(
+    "Mark as High Priority", key=f"high_priority_{equipment}_{date}"
 
             # Gearbox Inputs
-            gearbox = st.checkbox("Does the equipment have a gearbox?", key="gearbox")
+            gearbox = st.checkbox(
+    "Does the equipment have a gearbox?", key=f"gearbox_{equipment}_{date}"
+)
             if gearbox:
                 gearbox_temp = st.number_input("Gearbox Temperature (°C)", min_value=0.0, max_value=200.0, step=0.1,
                                                key="gearbox_temp")
