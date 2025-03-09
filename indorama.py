@@ -14,7 +14,7 @@ def authenticate_google_sheets():
 
 # ✅ Connect to Google Sheets
 client = authenticate_google_sheets()
-sheet = client.open("1hrxxyeFni0rZBvQZTAvtJBQzDjH-OlWVBSTtxwMaUSw").worksheet("Sheet1")  # Replace with actual Google Sheet name
+sheet = client.open("INDORAMA LLF").worksheet("Sheet1")  # Replace with actual Google Sheet name
 
 # Apply CSS for black buttons
 st.markdown(
