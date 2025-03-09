@@ -492,98 +492,101 @@ if st.session_state.page == "main":
 
     st.write("---")
 
-    # Weekly Report Dashboard
-    st.title("Weekly Report Dashboard")
+    # ✅ Weekly Report Dashboard
+st.title("Weekly Report Dashboard")
 
-    # Filter by date range
-    start_date = st.date_input("Start Date", value=datetime.now() - timedelta(days=7),
-                               key="weekly_report_start_date")
-    end_date = st.date_input("End Date", value=datetime.now(), key="weekly_report_end_date")
+# ✅ Filter by date range
+start_date = st.date_input("Start Date", value=datetime.now() - timedelta(days=7), key="weekly_report_start_date")
+end_date = st.date_input("End Date", value=datetime.now(), key="weekly_report_end_date")
 
-    # Load the data
-    data = load_data()
+# ✅ Load the data
+data = load_data()
 
-    if data.empty:
-        st.warning("No data available. Please enter condition monitoring data first.")
+if data.empty:
+    st.warning("No data available. Please enter condition monitoring data first.")
+else:
+    # ✅ Ensure Required Columns Exist
+    required_columns = ["Date", "Equipment", "Driving End Temp", "Driven End Temp", "RMS Velocity (mm/s)", "Oil Level", "Is Running"]
+    if not validate_columns(data, required_columns):
+        st.error("Dataset does not contain all required columns for analysis.")
     else:
-        # Validate required columns
-        required_columns = ["Date", "Equipment", "Driving End Temp", "Driven End Temp", "RMS Velocity (mm/s)",
-                            "Oil Level", "Is Running"]
-        if not validate_columns(data, required_columns):
-            st.error("Dataset does not contain all required columns for analysis.")
+        # ✅ Convert columns to correct types
+        data["Date"] = pd.to_datetime(data["Date"], errors="coerce")
+        data["Is Running"] = data["Is Running"].astype(str).str.lower() == "true"  # Convert to boolean
+        
+        # ✅ Ensure numeric values
+        for col in ["Driving End Temp", "Driven End Temp", "RMS Velocity (mm/s)"]:
+            data[col] = pd.to_numeric(data[col], errors="coerce")
+
+        # ✅ Debugging: Check column types and values
+        st.write("Data Types:\n", data.dtypes)
+        st.write("Unique 'Is Running' values:", data["Is Running"].unique())
+
+        # ✅ Filter data based on date range and running equipment
+        filtered_data = data[
+            (data["Date"] >= pd.Timestamp(start_date)) &
+            (data["Date"] <= pd.Timestamp(end_date)) &
+            (data["Is Running"] == True)  # Only include running equipment
+        ]
+
+        if filtered_data.empty:
+            st.success("✅ All equipment is operating within thresholds, or no running equipment was found for the selected date range.")
         else:
-            # Filter data for date range and running equipment
-            data["Date"] = pd.to_datetime(data["Date"], errors="coerce")
-            filtered_data = data[
-                (data["Date"] >= pd.Timestamp(start_date)) &
-                (data["Date"] <= pd.Timestamp(end_date)) &
-                (data["Is Running"] == True)  # Only include running equipment
-                ]
+            # ✅ Check for deviations
+            deviations = []
 
-            if filtered_data.empty:
-                st.success(
-                    "✅ All equipment is operating within thresholds, or no running equipment was found for the selected date range.")
+            for _, row in filtered_data.iterrows():
+                equipment = row["Equipment"].strip()  # Remove any extra spaces
+
+                if equipment in equipment_thresholds:
+                    thresholds = equipment_thresholds[equipment]  # ✅ Moved inside the loop
+
+                    if (
+                        not (thresholds["Driving End Temp"]["min"] <= row["Driving End Temp"] <= thresholds["Driving End Temp"]["max"]) or
+                        not (thresholds["Driven End Temp"]["min"] <= row["Driven End Temp"] <= thresholds["Driven End Temp"]["max"]) or
+                        not (thresholds["RMS Velocity (mm/s)"]["min"] <= row["RMS Velocity (mm/s)"] <= thresholds["RMS Velocity (mm/s)"]["max"])
+                    ):
+                        deviations.append(row)
+
+            deviation_data = pd.DataFrame(deviations)
+
+            if deviation_data.empty:
+                st.success("✅ All running equipment is within the specified thresholds.")
             else:
-                # Check for deviations
-                deviations = []
-                for _, row in filtered_data.iterrows():
+                st.subheader("⚠️ Running Equipment with Deviations")
+                st.dataframe(deviation_data)
+
+                # ✅ Generate Recommendations
+                st.write("### 🔍 Recommendations")
+                recommendations = []
+
+                for _, row in deviation_data.iterrows():
                     equipment = row["Equipment"]
-                    if equipment in equipment_thresholds:
-                        thresholds = equipment_thresholds[equipment]
-                        if (
-                                not thresholds["Driving End Temp"]["min"] <= row["Driving End Temp"] <=
-                                    thresholds["Driving End Temp"]["max"] or
-                                not thresholds["Driven End Temp"]["min"] <= row["Driven End Temp"] <=
-                                    thresholds["Driven End Temp"]["max"] or
-                                not thresholds["RMS Velocity (mm/s)"]["min"] <= row["RMS Velocity (mm/s)"] <=
-                                    thresholds["RMS Velocity (mm/s)"]["max"]
-                        ):
-                            deviations.append(row)
+                    thresholds = equipment_thresholds.get(equipment, {})
 
-                deviation_data = pd.DataFrame(deviations)
+                    if thresholds:
+                        if not (thresholds["Driving End Temp"]["min"] <= row["Driving End Temp"] <= thresholds["Driving End Temp"]["max"]):
+                            recommendations.append(f"🔧 **{equipment}**: Driving End Temp is outside the range {thresholds['Driving End Temp']['min']} - {thresholds['Driving End Temp']['max']} °C.")
 
-                if deviation_data.empty:
-                    st.success(
-                        "✅ All running equipment is operating within thresholds for the selected date range.")
-                else:
-                    st.subheader("⚠️ Running Equipment with Deviations")
-                    st.dataframe(deviation_data)
+                        if not (thresholds["Driven End Temp"]["min"] <= row["Driven End Temp"] <= thresholds["Driven End Temp"]["max"]):
+                            recommendations.append(f"🔧 **{equipment}**: Driven End Temp is outside the range {thresholds['Driven End Temp']['min']} - {thresholds['Driven End Temp']['max']} °C.")
 
-                    # Recommendations
-                    st.write("### 🔍 Recommendations")
-                    recommendations = []
-                    for _, row in deviation_data.iterrows():
-                        equipment = row["Equipment"]
-
-                        if not thresholds["Driving End Temp"]["min"] <= row["Driving End Temp"] <= \
-                               thresholds["Driving End Temp"]["max"]:
-                            recommendations.append(
-                                f"🔧 **{equipment}**: Driving End Temp is outside the range {thresholds['Driving End Temp']['min']} - {thresholds['Driving End Temp']['max']} °C.")
-
-                        if not thresholds["Driven End Temp"]["min"] <= row["Driven End Temp"] <= \
-                               thresholds["Driven End Temp"]["max"]:
-                            recommendations.append(
-                                f"🔧 **{equipment}**: Driven End Temp is outside the range {thresholds['Driven End Temp']['min']} - {thresholds['Driven End Temp']['max']} °C.")
-
-                        if not thresholds["RMS Velocity (mm/s)"]["min"] <= row["RMS Velocity (mm/s)"] <= \
-                               thresholds["RMS Velocity (mm/s)"]["max"]:
-                            recommendations.append(
-                                f"📊 **{equipment}**: RMS Velocity is outside the range {thresholds['RMS Velocity (mm/s)']['min']} - {thresholds['RMS Velocity (mm/s)']['max']} mm/s.")
+                        if not (thresholds["RMS Velocity (mm/s)"]["min"] <= row["RMS Velocity (mm/s)"] <= thresholds["RMS Velocity (mm/s)"]["max"]):
+                            recommendations.append(f"📊 **{equipment}**: RMS Velocity is outside the range {thresholds['RMS Velocity (mm/s)']['min']} - {thresholds['RMS Velocity (mm/s)']['max']} mm/s.")
 
                         if row["Oil Level"] == "Low":
                             recommendations.append(f"🛢️ **{equipment}**: Oil level is low. Consider refilling.")
 
-                    if recommendations:
-                        for rec in recommendations:
-                            st.info(rec)
-                    else:
-                        st.success("✅ No immediate issues detected in the deviations data.")
+                if recommendations:
+                    for rec in recommendations:
+                        st.info(rec)
+                else:
+                    st.success("✅ No immediate issues detected in the deviations data.")
 
-                    # Downloadable Weekly Report
-                    st.write("#### Download Weekly Report")
-                    csv = deviation_data.to_csv(index=False)
-                    st.download_button("Download Report as CSV", data=csv, file_name="weekly_report.csv",
-                                       mime="text/csv")
+                # ✅ Download Weekly Report
+                st.write("#### Download Weekly Report")
+                csv = deviation_data.to_csv(index=False)
+                st.download_button("Download Report as CSV", data=csv, file_name="weekly_report.csv", mime="text/csv")
 
         # Ensure data is available from KPI calculation
     data = kpis["data"]
