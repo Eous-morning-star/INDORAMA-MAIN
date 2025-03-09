@@ -715,19 +715,19 @@ if st.session_state.page == "main":
     if st.button("Next"):
         st.session_state.page = "monitoring"
 
+# High Priority Equipment Dashboard
 if st.session_state.page == "high_priority_dashboard":
-        # High Priority Equipment Section
     st.subheader("📊 High Priority Equipment Dashboard")
-    
+
     # Load the data
     data = load_data()
-    
+
     if data.empty:
         st.warning("No data available. Please enter condition monitoring data first.")
     else:
         # Filter high-priority equipment
         high_priority_data = data[data["High Priority"] == True]
-    
+
         if high_priority_data.empty:
             st.info("No equipment is marked as high priority.")
         else:
@@ -738,27 +738,28 @@ if st.session_state.page == "high_priority_dashboard":
                 ["Date Range", "Specific Day"],
                 key="high_priority_filter_type"
             )
-    
+
+            # Convert Date column to datetime
             high_priority_data["Date"] = pd.to_datetime(high_priority_data["Date"], errors="coerce")
-    
+
             if filter_option == "Date Range":
                 start_date = st.date_input("Start Date", value=datetime(2023, 1, 1), key="high_priority_start_date")
                 end_date = st.date_input("End Date", value=datetime.now(), key="high_priority_end_date")
-    
+
                 filtered_data = high_priority_data[
                     (high_priority_data["Date"] >= pd.Timestamp(start_date)) & 
                     (high_priority_data["Date"] <= pd.Timestamp(end_date))
                 ]
-    
+
             elif filter_option == "Specific Day":
                 selected_date = st.date_input("Select Date", value=datetime.now(), key="high_priority_specific_date")
-    
+
                 filtered_data = high_priority_data[high_priority_data["Date"] == pd.Timestamp(selected_date)]
-    
+
             # ✅ Display filtered high-priority equipment
             st.subheader("Filtered High Priority Equipment")
             st.dataframe(filtered_data)
-    
+
             # ✅ Downloadable CSV for High Priority Equipment
             st.write("#### Download High Priority Report")
             csv = filtered_data.to_csv(index=False)
