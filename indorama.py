@@ -761,9 +761,6 @@ elif st.session_state.page == "monitoring":
         # ✅ Initialize 'gearbox' before using it
         gearbox = False  # Default value
         
-        # ✅ Initialize 'high_priority' before using it
-        high_priority = False  # Default value
-        
         # Data Entry Fields
         if is_running:
             de_temp = st.number_input("Driving End Temperature (°C)", min_value=0.0, max_value=200.0, step=0.1,
@@ -784,11 +781,6 @@ elif st.session_state.page == "monitoring":
                                                           key="vibration_peak_acceleration")
             vibration_displacement = st.number_input("Displacement (µm)", min_value=0.0, max_value=1000.0, step=0.1,
                                                      key="vibration_displacement")
-
-            # Add a checkbox for marking equipment as high priority
-            high_priority = st.checkbox(
-    "Mark as High Priority", key=f"high_priority_{equipment}_{date}"
-)
 
             # Gearbox Inputs
             gearbox = st.checkbox(
@@ -819,7 +811,6 @@ elif st.session_state.page == "monitoring":
                     "Area": area,
                     "Equipment": equipment,
                     "Is Running": is_running,
-                    "High Priority": bool(high_priority),  # Avoid undefined variable error
                     "Driving End Temp": de_temp if is_running else 0.0,
                     "Driven End Temp": dr_temp if is_running else 0.0,
                     "Oil Level": oil_level if is_running else "N/A",
