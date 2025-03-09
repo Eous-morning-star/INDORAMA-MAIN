@@ -28,7 +28,6 @@ if client:
 else:
     st.stop()
 
-
 # Apply CSS for black buttons
 st.markdown(
     """
