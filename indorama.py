@@ -716,7 +716,7 @@ if st.session_state.page == "main":
         st.session_state.page = "monitoring"
 
 # High Priority Equipment Dashboard
-if st.session_state.page == "high_priority_dashboard":
+elif st.session_state.page == "high_priority_dashboard":
     st.subheader("📊 High Priority Equipment Dashboard")
 
     # Load the data
