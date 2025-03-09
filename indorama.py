@@ -490,105 +490,138 @@ if st.session_state.page == "main":
     col2.metric("Average Temperature", kpis["avg_temp"])
     col3.metric("Running Equipment", kpis["running_percentage"])
 
+
+    # High Priority Dashboard Section
+    st.write("---")  # Separator line
+    st.subheader("📊 High Priority Equipment Dashboard")
+
+    # Load the data
+    data = load_data()
+
+    if data.empty:
+        st.warning("No data available. Please enter condition monitoring data first.")
+    else:
+        # Filter high-priority equipment
+        high_priority_data = data[data["High Priority"] == True]
+
+        if high_priority_data.empty:
+            st.info("No equipment is marked as high priority.")
+        else:
+            # Add date filters for high-priority equipment
+            st.write("#### Filter by Date Range")
+            start_date = st.date_input("Start Date", value=datetime(2023, 1, 1), key="high_priority_start_date")
+            end_date = st.date_input("End Date", value=datetime.now(), key="high_priority_end_date")
+
+            # Filter data by date range
+            high_priority_data["Date"] = pd.to_datetime(high_priority_data["Date"], errors="coerce")
+            filtered_data = high_priority_data[
+                (high_priority_data["Date"] >= pd.Timestamp(start_date)) &
+                (high_priority_data["Date"] <= pd.Timestamp(end_date))
+                ]
+
+            # Display filtered high-priority equipment
+            st.subheader("High Priority Equipment")
+            st.dataframe(filtered_data)
+
+            # Downloadable CSV for High Priority Equipment
+            st.write("#### Download High Priority Report")
+            csv = filtered_data.to_csv(index=False)
+            st.download_button("Download as CSV", data=csv, file_name="high_priority_report.csv", mime="text/csv")
+
     st.write("---")
 
     # Weekly Report Dashboard
-    # ✅ Filter data for weekly report
-st.title("Weekly Report Dashboard")
+    st.title("Weekly Report Dashboard")
 
-# Date filters
-start_date = st.date_input("Start Date", value=datetime.now() - timedelta(days=7), key="weekly_report_start_date")
-end_date = st.date_input("End Date", value=datetime.now(), key="weekly_report_end_date")
+    # Filter by date range
+    start_date = st.date_input("Start Date", value=datetime.now() - timedelta(days=7),
+                               key="weekly_report_start_date")
+    end_date = st.date_input("End Date", value=datetime.now(), key="weekly_report_end_date")
 
-data = load_data()  # Reload data from Google Sheets
+    # Load the data
+    data = load_data()
 
-if data.empty:
-    st.warning("No data available. Please enter condition monitoring data first.")
-else:
-    # ✅ Convert Date column to datetime format
-    data["Date"] = pd.to_datetime(data["Date"], errors="coerce")
-
-    # ✅ Convert relevant columns to numeric to avoid type issues
-    for col in ["Driving End Temp", "Driven End Temp", "RMS Velocity (mm/s)"]:
-        data[col] = pd.to_numeric(data[col], errors="coerce")
-
-    # ✅ Drop NaN values to avoid errors
-    data = data.dropna(subset=["Driving End Temp", "Driven End Temp", "RMS Velocity (mm/s)"])
-
-    # ✅ Filter data based on date range and running equipment
-    filtered_data = data[
-        (data["Date"] >= pd.Timestamp(start_date)) &
-        (data["Date"] <= pd.Timestamp(end_date)) &
-        (data["Is Running"] == True)
-    ]
-
-    if filtered_data.empty:
-        st.success("✅ All equipment is operating within thresholds, or no running equipment was found for the selected date range.")
+    if data.empty:
+        st.warning("No data available. Please enter condition monitoring data first.")
     else:
-        deviations = []
-
-        for _, row in filtered_data.iterrows():
-            equipment = row["Equipment"]
-
-            if equipment in equipment_thresholds:
-                thresholds = equipment_thresholds[equipment]
-                driving_temp = row["Driving End Temp"]
-                driven_temp = row["Driven End Temp"]
-                rms_velocity = row["RMS Velocity (mm/s)"]
-
-                # ✅ Correct deviation check: If any value is out of range, flag it
-                if (
-                    not (thresholds["Driving End Temp"]["min"] <= driving_temp <= thresholds["Driving End Temp"]["max"]) or
-                    not (thresholds["Driven End Temp"]["min"] <= driven_temp <= thresholds["Driven End Temp"]["max"]) or
-                    not (thresholds["RMS Velocity (mm/s)"]["min"] <= rms_velocity <= thresholds["RMS Velocity (mm/s)"]["max"])
-                ):
-                    deviations.append(row)
-
-        deviation_data = pd.DataFrame(deviations)
-
-        if deviation_data.empty:
-            st.success("✅ All running equipment is within the specified thresholds.")
+        # Validate required columns
+        required_columns = ["Date", "Equipment", "Driving End Temp", "Driven End Temp", "RMS Velocity (mm/s)",
+                            "Oil Level", "Is Running"]
+        if not validate_columns(data, required_columns):
+            st.error("Dataset does not contain all required columns for analysis.")
         else:
-            st.subheader("⚠️ Running Equipment with Deviations")
-            st.dataframe(deviation_data)
+            # Filter data for date range and running equipment
+            data["Date"] = pd.to_datetime(data["Date"], errors="coerce")
+            filtered_data = data[
+                (data["Date"] >= pd.Timestamp(start_date)) &
+                (data["Date"] <= pd.Timestamp(end_date)) &
+                (data["Is Running"] == True)  # Only include running equipment
+                ]
 
-            # 🔍 **Generate Recommendations**
-            st.write("### 🔍 Recommendations")
-            recommendations = []
-
-            for _, row in deviation_data.iterrows():
-                equipment = row["Equipment"]
-                thresholds = equipment_thresholds.get(equipment, {})
-
-                if thresholds:
-                    if not thresholds["Driving End Temp"]["min"] <= row["Driving End Temp"] <= thresholds["Driving End Temp"]["max"]:
-                        recommendations.append(
-                            f"🔧 **{equipment}**: Driving End Temp is outside the range {thresholds['Driving End Temp']['min']} - {thresholds['Driving End Temp']['max']} °C."
-                        )
-
-                    if not thresholds["Driven End Temp"]["min"] <= row["Driven End Temp"] <= thresholds["Driven End Temp"]["max"]:
-                        recommendations.append(
-                            f"🔧 **{equipment}**: Driven End Temp is outside the range {thresholds['Driven End Temp']['min']} - {thresholds['Driven End Temp']['max']} °C."
-                        )
-
-                    if not thresholds["RMS Velocity (mm/s)"]["min"] <= row["RMS Velocity (mm/s)"] <= thresholds["RMS Velocity (mm/s)"]["max"]:
-                        recommendations.append(
-                            f"📊 **{equipment}**: RMS Velocity is outside the range {thresholds['RMS Velocity (mm/s)']['min']} - {thresholds['RMS Velocity (mm/s)']['max']} mm/s."
-                        )
-
-                    if row["Oil Level"] == "Low":
-                        recommendations.append(f"🛢️ **{equipment}**: Oil level is low. Consider refilling.")
-
-            if recommendations:
-                for rec in recommendations:
-                    st.info(rec)
+            if filtered_data.empty:
+                st.success(
+                    "✅ All equipment is operating within thresholds, or no running equipment was found for the selected date range.")
             else:
-                st.success("✅ No immediate issues detected in the deviations data.")
+                # Check for deviations
+                deviations = []
+                for _, row in filtered_data.iterrows():
+                    equipment = row["Equipment"]
+                    if equipment in equipment_thresholds:
+                        thresholds = equipment_thresholds[equipment]
+                        if (
+                                not thresholds["Driving End Temp"]["min"] <= row["Driving End Temp"] <=
+                                    thresholds["Driving End Temp"]["max"] or
+                                not thresholds["Driven End Temp"]["min"] <= row["Driven End Temp"] <=
+                                    thresholds["Driven End Temp"]["max"] or
+                                not thresholds["RMS Velocity (mm/s)"]["min"] <= row["RMS Velocity (mm/s)"] <=
+                                    thresholds["RMS Velocity (mm/s)"]["max"]
+                        ):
+                            deviations.append(row)
 
-            # ✅ Download Weekly Report
-            st.write("#### Download Weekly Report")
-            csv = deviation_data.to_csv(index=False)
-            st.download_button("Download Report as CSV", data=csv, file_name="weekly_report.csv", mime="text/csv")
+                deviation_data = pd.DataFrame(deviations)
+
+                if deviation_data.empty:
+                    st.success(
+                        "✅ All running equipment is operating within thresholds for the selected date range.")
+                else:
+                    st.subheader("⚠️ Running Equipment with Deviations")
+                    st.dataframe(deviation_data)
+
+                    # Recommendations
+                    st.write("### 🔍 Recommendations")
+                    recommendations = []
+                    for _, row in deviation_data.iterrows():
+                        equipment = row["Equipment"]
+
+                        if not thresholds["Driving End Temp"]["min"] <= row["Driving End Temp"] <= \
+                               thresholds["Driving End Temp"]["max"]:
+                            recommendations.append(
+                                f"🔧 **{equipment}**: Driving End Temp is outside the range {thresholds['Driving End Temp']['min']} - {thresholds['Driving End Temp']['max']} °C.")
+
+                        if not thresholds["Driven End Temp"]["min"] <= row["Driven End Temp"] <= \
+                               thresholds["Driven End Temp"]["max"]:
+                            recommendations.append(
+                                f"🔧 **{equipment}**: Driven End Temp is outside the range {thresholds['Driven End Temp']['min']} - {thresholds['Driven End Temp']['max']} °C.")
+
+                        if not thresholds["RMS Velocity (mm/s)"]["min"] <= row["RMS Velocity (mm/s)"] <= \
+                               thresholds["RMS Velocity (mm/s)"]["max"]:
+                            recommendations.append(
+                                f"📊 **{equipment}**: RMS Velocity is outside the range {thresholds['RMS Velocity (mm/s)']['min']} - {thresholds['RMS Velocity (mm/s)']['max']} mm/s.")
+
+                        if row["Oil Level"] == "Low":
+                            recommendations.append(f"🛢️ **{equipment}**: Oil level is low. Consider refilling.")
+
+                    if recommendations:
+                        for rec in recommendations:
+                            st.info(rec)
+                    else:
+                        st.success("✅ No immediate issues detected in the deviations data.")
+
+                    # Downloadable Weekly Report
+                    st.write("#### Download Weekly Report")
+                    csv = deviation_data.to_csv(index=False)
+                    st.download_button("Download Report as CSV", data=csv, file_name="weekly_report.csv",
+                                       mime="text/csv")
 
         # Ensure data is available from KPI calculation
     data = kpis["data"]
@@ -682,6 +715,57 @@ else:
     if st.button("Next"):
         st.session_state.page = "monitoring"
 
+elif st.session_state.page == "high_priority_dashboard":
+        # High Priority Equipment Section
+    st.subheader("📊 High Priority Equipment Dashboard")
+    
+    # Load the data
+    data = load_data()
+    
+    if data.empty:
+        st.warning("No data available. Please enter condition monitoring data first.")
+    else:
+        # Filter high-priority equipment
+        high_priority_data = data[data["High Priority"] == True]
+    
+        if high_priority_data.empty:
+            st.info("No equipment is marked as high priority.")
+        else:
+            # ✅ Add a date filter option
+            st.write("### Filter by Date or Date Range")
+            filter_option = st.radio(
+                "Select Filter Type",
+                ["Date Range", "Specific Day"],
+                key="high_priority_filter_type"
+            )
+    
+            high_priority_data["Date"] = pd.to_datetime(high_priority_data["Date"], errors="coerce")
+    
+            if filter_option == "Date Range":
+                start_date = st.date_input("Start Date", value=datetime(2023, 1, 1), key="high_priority_start_date")
+                end_date = st.date_input("End Date", value=datetime.now(), key="high_priority_end_date")
+    
+                filtered_data = high_priority_data[
+                    (high_priority_data["Date"] >= pd.Timestamp(start_date)) & 
+                    (high_priority_data["Date"] <= pd.Timestamp(end_date))
+                ]
+    
+            elif filter_option == "Specific Day":
+                selected_date = st.date_input("Select Date", value=datetime.now(), key="high_priority_specific_date")
+    
+                filtered_data = high_priority_data[high_priority_data["Date"] == pd.Timestamp(selected_date)]
+    
+            # ✅ Display filtered high-priority equipment
+            st.subheader("Filtered High Priority Equipment")
+            st.dataframe(filtered_data)
+    
+            # ✅ Downloadable CSV for High Priority Equipment
+            st.write("#### Download High Priority Report")
+            csv = filtered_data.to_csv(index=False)
+            st.download_button("Download as CSV", data=csv, file_name="high_priority_report.csv", mime="text/csv")
+
+elif st.session_state.page == "monitoring":
+
     def filter_data(df, equipment, start_date, end_date):
         """Filter data by equipment and date range."""
         df["Date"] = pd.to_datetime(df["Date"])  # Convert Date column to datetime
@@ -763,7 +847,9 @@ else:
         
         # ✅ Initialize 'gearbox' before using it
         gearbox = False  # Default value
-
+        
+        # ✅ Initialize 'high_priority' before using it
+        high_priority = False  # Default value
         
         # Data Entry Fields
         if is_running:
@@ -785,6 +871,11 @@ else:
                                                           key="vibration_peak_acceleration")
             vibration_displacement = st.number_input("Displacement (µm)", min_value=0.0, max_value=1000.0, step=0.1,
                                                      key="vibration_displacement")
+
+            # Add a checkbox for marking equipment as high priority
+            high_priority = st.checkbox(
+    "Mark as High Priority", key=f"high_priority_{equipment}_{date}"
+)
 
             # Gearbox Inputs
             gearbox = st.checkbox(
@@ -815,6 +906,7 @@ else:
                     "Area": area,
                     "Equipment": equipment,
                     "Is Running": is_running,
+                    "High Priority": bool(high_priority),  # Avoid undefined variable error
                     "Driving End Temp": de_temp if is_running else 0.0,
                     "Driven End Temp": dr_temp if is_running else 0.0,
                     "Oil Level": oil_level if is_running else "N/A",
