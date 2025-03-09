@@ -884,18 +884,18 @@ elif st.session_state.page == "monitoring":
                     "Gearbox Displacement (µm)": gearbox_vibration_displacement if gearbox else 0.0
                 }])
 
-        # ✅ Load existing data & append new row
-        existing_data = sheet.get_all_records()
-        df = pd.DataFrame(existing_data)
-        df = pd.concat([df, new_data], ignore_index=True)
-
-        # ✅ Save updated data to Google Sheets
-        sheet.clear()
-        sheet.update([df.columns.values.tolist()] + df.values.tolist())
-
-        st.success("✅ Data saved to Google Sheets!")
-    except Exception as e:
-        st.error(f"Error saving data: {e}")
+                # ✅ Load existing data & append new row
+                existing_data = sheet.get_all_records()
+                df = pd.DataFrame(existing_data)
+                df = pd.concat([df, new_data], ignore_index=True)
+        
+                # ✅ Save updated data to Google Sheets
+                sheet.clear()
+                sheet.update([df.columns.values.tolist()] + df.values.tolist())
+        
+                st.success("✅ Data saved to Google Sheets!")
+            except Exception as e:
+                st.error(f"Error saving data: {e}")
 
     # Tab 2: Reports and Visualizations
     with tab2:
