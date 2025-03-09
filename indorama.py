@@ -492,7 +492,7 @@ if st.session_state.page == "main":
 
     st.write("---")
 
-        # ✅ Weekly Report Dashboard
+    # ✅ Weekly Report Dashboard
     st.title("Weekly Report Dashboard")
     
     # ✅ Filter by date range
@@ -517,10 +517,6 @@ if st.session_state.page == "main":
             # ✅ Ensure numeric values
             for col in ["Driving End Temp", "Driven End Temp", "RMS Velocity (mm/s)"]:
                 data[col] = pd.to_numeric(data[col], errors="coerce")
-    
-            # ✅ Debugging: Check column types and values
-            st.write("Data Types:\n", data.dtypes)
-            st.write("Unique 'Is Running' values:", data["Is Running"].unique())
     
             # ✅ Filter data based on date range and running equipment
             filtered_data = data[
