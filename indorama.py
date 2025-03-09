@@ -715,7 +715,7 @@ if st.session_state.page == "main":
     if st.button("Next"):
         st.session_state.page = "monitoring"
 
-elif st.session_state.page == "high_priority_dashboard":
+if st.session_state.page == "high_priority_dashboard":
         # High Priority Equipment Section
     st.subheader("📊 High Priority Equipment Dashboard")
     
