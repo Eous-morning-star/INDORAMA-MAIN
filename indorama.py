@@ -4,6 +4,17 @@ import os
 from datetime import datetime, timedelta
 import plotly.express as px
 import base64
+import gspread
+from google.oauth2.service_account import Credentials
+
+# ✅ Authenticate Google Sheets using Streamlit secrets
+def authenticate_google_sheets():
+    creds = Credentials.from_service_account_info(st.secrets["GOOGLE_SHEET_KEY"])
+    return gspread.authorize(creds)
+
+# ✅ Connect to Google Sheets
+client = authenticate_google_sheets()
+sheet = client.open("INDORAMA LLF").worksheet("Sheet1")  # Replace with actual Google Sheet name
 
 # Apply CSS for black buttons
 st.markdown(
@@ -353,22 +364,19 @@ equipment_thresholds = ({
     "2-P-2303-B": {"Driving End Temp": {"min": 50, "max": 58}, "Driven End Temp": {"min": 50, "max": 58}, "RMS Velocity (mm/s)": {"min": 0, "max": 4.3}},
 })
 
-# Define the file path at the top of the script
-file_path = "data/condition_data.csv"
-
-
-# Create the directory if it doesn't exist
-if not os.path.exists("data"):
-    os.makedirs("data")
+# ✅ Load existing data from Google Sheets
+def load_data():
+    """Fetch data from Google Sheets."""
+    try:
+        data = sheet.get_all_records()
+        return pd.DataFrame(data)
+    except Exception as e:
+        st.error(f"Error loading data from Google Sheets: {e}")
+        return pd.DataFrame()
+    
 # Initialize session state variables
 if "page" not in st.session_state:
     st.session_state.page = "main"  # Set default page to "main"
-
-def load_data(file_path):
-    """Load data from a CSV file."""
-    if not os.path.exists(file_path):
-        return pd.DataFrame()  # Return an empty DataFrame if file doesn't exist
-    return pd.read_csv(file_path)
 
 def validate_columns(df, required_columns):
     missing = [col for col in required_columns if col not in df.columns]
@@ -378,34 +386,21 @@ def validate_columns(df, required_columns):
     return True
 
 # Add Utility Functions Here
-def calculate_kpis(file_path):
+def calculate_kpis():
     """Calculate KPIs and return data for charts."""
-    if not os.path.exists(file_path) or os.path.getsize(file_path) == 0:
-        st.warning(f"No data file found at {file_path}. Showing default KPI values.")
-        return {
-            "compliance_rate": "No Data",
-            "avg_temp": "No Data",
-            "running_percentage": "No Data",
-            "data": pd.DataFrame()  # Return an empty DataFrame for charts
-        }
-
-    # Load the CSV file
-    data = pd.read_csv(file_path)
+    data = load_data()
     if data.empty:
-        st.warning("The data file is empty. Showing default KPI values.")
         return {
             "compliance_rate": "No Data",
             "avg_temp": "No Data",
             "running_percentage": "No Data",
-            "data": pd.DataFrame()  # Return an empty DataFrame for charts
+            "data": pd.DataFrame()
         }
 
-    # Calculate KPIs
     compliance_rate = data["Is Running"].mean() * 100
     avg_temp = data[["Driving End Temp", "Driven End Temp"]].mean().mean()
     running_percentage = (data["Is Running"].sum() / len(data)) * 100
 
-    # Return KPIs and data
     return {
         "compliance_rate": f"{compliance_rate:.2f}%",
         "avg_temp": f"{avg_temp:.2f}°C",
@@ -484,7 +479,7 @@ if st.session_state.page == "main":
     st.subheader("📊 High Priority Equipment Dashboard")
 
     # Load the data
-    data = load_data(file_path)
+    data = load_data()
 
     if data.empty:
         st.warning("No data available. Please enter condition monitoring data first.")
@@ -527,7 +522,7 @@ if st.session_state.page == "main":
     end_date = st.date_input("End Date", value=datetime.now(), key="weekly_report_end_date")
 
     # Load the data
-    data = load_data(file_path)
+    data = load_data()
 
     if data.empty:
         st.warning("No data available. Please enter condition monitoring data first.")
@@ -707,7 +702,7 @@ elif st.session_state.page == "high_priority_dashboard":
     st.title("High Priority Equipment Dashboard")
 
     # Load data
-    data = load_data(file_path)
+    data = load_data()
 
     if data.empty:
         st.warning("No data available. Please enter condition monitoring data first.")
@@ -738,12 +733,6 @@ elif st.session_state.page == "high_priority_dashboard":
             st.download_button("Download as CSV", data=csv, file_name="high_priority_report.csv", mime="text/csv")
 
 elif st.session_state.page == "monitoring":
-
-    def load_data(file_path):
-        """Load data from a CSV file."""
-        if not os.path.exists(file_path):
-            return pd.DataFrame()  # Return an empty DataFrame if file doesn't exist
-        return pd.read_csv(file_path)
 
     def filter_data(df, equipment, start_date, end_date):
         """Filter data by equipment and date range."""
@@ -870,81 +859,43 @@ elif st.session_state.page == "monitoring":
 
         # Submit Button
         if st.button("Submit Data"):
-            try:
-                # Check if essential fields are filled (add your required fields here)
-                if not date or not area or not equipment:
-                    st.error("Please fill in all required fields before submitting.")
-                elif is_running and ("de_temp" not in st.session_state or "dr_temp" not in st.session_state):
-                    st.error("Please provide temperature values if the equipment is running.")
-                else:
-                    # Prepare data
-                    if not is_running:
-                        # If equipment is not running, set all numeric fields to 0 and strings to 'N/A'
-                        data = {
-                            "Date": [date],
-                            "Area": [area],
-                            "Equipment": [equipment],
-                            "Is Running": [False],
-                            "High Priority": [False],
-                            "Driving End Temp": [0.0],
-                            "Driven End Temp": [0.0],
-                            "Oil Level": ["N/A"],
-                            "Abnormal Sound": ["N/A"],
-                            "Leakage": ["N/A"],
-                            "Observation": ["Not Running"],
-                            "RMS Velocity (mm/s)": [0.0],
-                            "Peak Acceleration (g)": [0.0],
-                            "Displacement (µm)": [0.0],
-                            "Gearbox Temp": [0.0],
-                            "Gearbox Oil Level": ["N/A"],
-                            "Gearbox Leakage": ["N/A"],
-                            "Gearbox Abnormal Sound": ["N/A"],
-                            "Gearbox RMS Velocity (mm/s)": [0.0],
-                            "Gearbox Peak Acceleration (g)": [0.0],
-                            "Gearbox Displacement (µm)": [0.0],
-                        }
+    try:
+        new_data = pd.DataFrame([{
+            "Date": date,
+            "Area": area,
+            "Equipment": equipment,
+            "Is Running": is_running,
+            "High Priority": high_priority,
+            "Driving End Temp": de_temp if is_running else 0.0,
+            "Driven End Temp": dr_temp if is_running else 0.0,
+            "Oil Level": oil_level if is_running else "N/A",
+            "Abnormal Sound": abnormal_sound if is_running else "N/A",
+            "Leakage": leakage if is_running else "N/A",
+            "Observation": observation if is_running else "Not Running",
+            "RMS Velocity (mm/s)": vibration_rms_velocity if is_running else 0.0,
+            "Peak Acceleration (g)": vibration_peak_acceleration if is_running else 0.0,
+            "Displacement (µm)": vibration_displacement if is_running else 0.0,
+            "Gearbox Temp": gearbox_temp if gearbox else 0.0,
+            "Gearbox Oil Level": gearbox_oil if gearbox else "N/A",
+            "Gearbox Leakage": gearbox_leakage if gearbox else "N/A",
+            "Gearbox Abnormal Sound": gearbox_abnormal_sound if gearbox else "N/A",
+            "Gearbox RMS Velocity (mm/s)": gearbox_vibration_rms_velocity if gearbox else 0.0,
+            "Gearbox Peak Acceleration (g)": gearbox_vibration_peak_acceleration if gearbox else 0.0,
+            "Gearbox Displacement (µm)": gearbox_vibration_displacement if gearbox else 0.0
+        }])
 
-                    else:
-                        # If equipment is running, save entered values
-                        data = {
-                            "Date": [date],
-                            "Area": [area],
-                            "Equipment": [equipment],
-                            "Is Running": [True],
-                            "High Priority": [high_priority],
-                            "Driving End Temp": [st.session_state.de_temp],
-                            "Driven End Temp": [st.session_state.dr_temp],
-                            "Oil Level": [st.session_state.oil_level],
-                            "Abnormal Sound": [st.session_state.abnormal_sound],
-                            "Leakage": [st.session_state.leakage],
-                            "Observation": [st.session_state.observation],
-                            "RMS Velocity (mm/s)": [st.session_state.vibration_rms_velocity],
-                            "Peak Acceleration (g)": [st.session_state.vibration_peak_acceleration],
-                            "Displacement (µm)": [st.session_state.vibration_displacement],
-                            "Gearbox Temp": [
-                                st.session_state.gearbox_temp if "gearbox_temp" in st.session_state else 0.0],
-                            "Gearbox Oil Level": [
-                                st.session_state.gearbox_oil if "gearbox_oil" in st.session_state else "N/A"],
-                            "Gearbox Leakage": [
-                                st.session_state.gearbox_leakage if "gearbox_leakage" in st.session_state else "N/A"],
-                            "Gearbox Abnormal Sound": [
-                                st.session_state.gearbox_leakage if "gearbox_abnormal_sound" in st.session_state else "N/A"]
-                        }
+        # ✅ Load existing data & append new row
+        existing_data = sheet.get_all_records()
+        df = pd.DataFrame(existing_data)
+        df = pd.concat([df, new_data], ignore_index=True)
 
-                    # Save to CSV
-                    df = pd.DataFrame(data)
-                    file_path = "data/condition_data.csv"
-                    if not os.path.exists("data"):
-                        os.makedirs("data")
-                    if os.path.exists(file_path):
-                        df.to_csv(file_path, mode="a", header=False, index=False)
-                    else:
-                        df.to_csv(file_path, index=False)
+        # ✅ Save updated data to Google Sheets
+        sheet.clear()
+        sheet.update([df.columns.values.tolist()] + df.values.tolist())
 
-                    st.success("Data Submitted Successfully!")
-
-            except Exception as e:
-                st.error(f"An error occurred: {e}")
+        st.success("✅ Data saved to Google Sheets!")
+    except Exception as e:
+        st.error(f"Error saving data: {e}")
 
     # Tab 2: Reports and Visualizations
     with tab2:
@@ -952,7 +903,7 @@ elif st.session_state.page == "monitoring":
         file_path = "data/condition_data.csv"
 
         # Load data
-        data = load_data(file_path)
+        data = load_data()
 
         if data.empty:
             st.warning("No data available. Please enter condition monitoring data first.")
