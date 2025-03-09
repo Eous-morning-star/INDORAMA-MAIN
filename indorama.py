@@ -7,14 +7,29 @@ import base64
 import gspread
 from google.oauth2.service_account import Credentials
 
-# ✅ Authenticate Google Sheets using Streamlit secrets
+import streamlit as st
+import gspread
+from google.oauth2.service_account import Credentials
+
+# ✅ Authenticate Google Sheets with secrets
 def authenticate_google_sheets():
-    creds = Credentials.from_service_account_info(st.secrets["GOOGLE_SHEET_KEY"])
-    return gspread.authorize(creds)
+    try:
+        creds = Credentials.from_service_account_info(st.secrets["GOOGLE_SHEET_KEY"])
+        return gspread.authorize(creds)
+    except Exception as e:
+        st.error(f"❌ Google Sheets authentication failed: {e}")
+        return None
 
 # ✅ Connect to Google Sheets
 client = authenticate_google_sheets()
-sheet = client.open("INDORAMA LLF").worksheet("Sheet1")  # Replace with actual Google Sheet name
+if client:
+    try:
+        sheet = client.open("INDORAMA LLF").worksheet("Sheet1")
+    except Exception as e:
+        st.error(f"❌ Unable to open Google Sheet: {e}")
+else:
+    st.stop()
+
 
 # Apply CSS for black buttons
 st.markdown(
