@@ -891,7 +891,7 @@ elif st.session_state.page == "monitoring":
                     "Area": area,
                     "Equipment": equipment,
                     "Is Running": is_running,
-                    "High Priority": high_priority if 'high_priority' in locals() else False,  # Avoid undefined variable error
+                    "High Priority": bool(high_priority),  # Avoid undefined variable error
                     "Driving End Temp": de_temp if is_running else 0.0,
                     "Driven End Temp": dr_temp if is_running else 0.0,
                     "Oil Level": oil_level if is_running else "N/A",
@@ -961,11 +961,12 @@ elif st.session_state.page == "monitoring":
                     # Filter data for the selected equipment and date range
                     data["Date"] = pd.to_datetime(data["Date"], errors="coerce")
                     data = data.dropna(subset=["Date"])  # Remove invalid dates
+                    data["Is Running"] = pd.to_numeric(data["Is Running"], errors="coerce")
                     filtered_data = data[
-                        (data["Equipment"] == selected_equipment) &
-                        (data["Date"] >= pd.to_datetime(start_date)) &
-                        (data["Date"] <= pd.to_datetime(end_date))
-                        ]
+                        (data["Date"] >= pd.Timestamp(start_date)) &
+                        (data["Date"] <= pd.Timestamp(end_date)) &
+                        (data["Is Running"] == 1)  # Use 1 instead of True
+                    ]
 
                     # Check if filtered data is empty
                     if filtered_data.empty:
