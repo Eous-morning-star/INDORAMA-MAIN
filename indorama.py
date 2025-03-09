@@ -7,70 +7,6 @@ import base64
 import gspread
 from google.oauth2.service_account import Credentials
 
-# ✅ Authenticate Google Sheets with the correct scope
-def authenticate_google_sheets():
-    try:
-        scopes = ["https://www.googleapis.com/auth/spreadsheets", 
-                  "https://www.googleapis.com/auth/drive"]  # Added Drive access for permission issues
-        
-        creds = Credentials.from_service_account_info(st.secrets["GOOGLE_SHEET_KEY"], scopes=scopes)
-        return gspread.authorize(creds)
-    except Exception as e:
-        st.error(f"❌ Google Sheets authentication failed: {e}")
-        return None
-
-# ✅ Connect to Google Sheets
-client = authenticate_google_sheets()
-if client:
-    try:
-        sheet = client.open("INDORAMA LLF").worksheet("Sheet1")
-        st.success("✅ Connected to Google Sheets successfully!")
-    except Exception as e:
-        st.error(f"❌ Unable to open Google Sheet: {e}")
-else:
-    st.stop()
-
-# Apply CSS for black buttons
-st.markdown(
-    """
-    <style>
-    /* Make all text bold */
-    h1, h2, h3, h4, h5, h6, p, label {
-        font-weight: bold !important;
-        font-size: 18px !important;
-    }
-
-    /* Add black shadow to headings */
-    h1, h2, h3, h4, h5, h6 {
-        text-shadow: 3px 3px 5px black !important;
-    }
-
-    /* Ensure text is visible over the background */
-    body, .stApp {
-        color: white !important; /* Change to black if needed */
-    }
-    
-    /* Style Streamlit buttons */
-    div.stButton > button {
-        background-color: black !important;
-        color: white !important;
-        border-radius: 10px !important;
-        padding: 10px 20px !important;
-        font-size: 16px !important;
-        font-weight: bold !important;
-        border: 2px solid white !important;
-    }
-
-    /* Change button color when hovered */
-    div.stButton > button:hover {
-        background-color: #333 !important;  /* Darker black on hover */
-        color: white !important;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
 # Define deviation thresholds for specific equipment
 equipment_thresholds = ({
     # Reaction Area
@@ -377,6 +313,70 @@ equipment_thresholds = ({
     "2-P-2303-A": {"Driving End Temp": {"min": 50, "max": 58}, "Driven End Temp": {"min": 50, "max": 58}, "RMS Velocity (mm/s)": {"min": 0, "max": 4.3}},
     "2-P-2303-B": {"Driving End Temp": {"min": 50, "max": 58}, "Driven End Temp": {"min": 50, "max": 58}, "RMS Velocity (mm/s)": {"min": 0, "max": 4.3}},
 })
+
+# ✅ Authenticate Google Sheets with the correct scope
+def authenticate_google_sheets():
+    try:
+        scopes = ["https://www.googleapis.com/auth/spreadsheets", 
+                  "https://www.googleapis.com/auth/drive"]  # Added Drive access for permission issues
+        
+        creds = Credentials.from_service_account_info(st.secrets["GOOGLE_SHEET_KEY"], scopes=scopes)
+        return gspread.authorize(creds)
+    except Exception as e:
+        st.error(f"❌ Google Sheets authentication failed: {e}")
+        return None
+
+# ✅ Connect to Google Sheets
+client = authenticate_google_sheets()
+if client:
+    try:
+        sheet = client.open("INDORAMA LLF").worksheet("Sheet1")
+        st.success("✅ Connected to Google Sheets successfully!")
+    except Exception as e:
+        st.error(f"❌ Unable to open Google Sheet: {e}")
+else:
+    st.stop()
+
+# Apply CSS for black buttons
+st.markdown(
+    """
+    <style>
+    /* Make all text bold */
+    h1, h2, h3, h4, h5, h6, p, label {
+        font-weight: bold !important;
+        font-size: 18px !important;
+    }
+
+    /* Add black shadow to headings */
+    h1, h2, h3, h4, h5, h6 {
+        text-shadow: 3px 3px 5px black !important;
+    }
+
+    /* Ensure text is visible over the background */
+    body, .stApp {
+        color: white !important; /* Change to black if needed */
+    }
+    
+    /* Style Streamlit buttons */
+    div.stButton > button {
+        background-color: black !important;
+        color: white !important;
+        border-radius: 10px !important;
+        padding: 10px 20px !important;
+        font-size: 16px !important;
+        font-weight: bold !important;
+        border: 2px solid white !important;
+    }
+
+    /* Change button color when hovered */
+    div.stButton > button:hover {
+        background-color: #333 !important;  /* Darker black on hover */
+        color: white !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 # ✅ Load existing data from Google Sheets
 def load_data():
