@@ -888,7 +888,8 @@ elif st.session_state.page == "monitoring":
                 all_equipment = [equipment for area in equipment_lists.values() for equipment in area]
 
                 # Dropdown for Equipment Selection
-                selected_equipment = st.selectbox("Select Equipment", options=all_equipment)
+                equipment_options = data["Equipment"].unique()
+                selected_equipment = st.selectbox("Select Equipment", options=equipment_options)
 
                 # Date Range Inputs
                 start_date = st.date_input("Start Date", value=datetime(2023, 1, 1))
@@ -897,21 +898,11 @@ elif st.session_state.page == "monitoring":
                 if start_date > end_date:
                     st.error("Start date cannot be later than end date.")
                 else:
-                    # Filter data for the selected equipment and date range
-                    data["Date"] = pd.to_datetime(data["Date"], errors="coerce")
-                    data = data.dropna(subset=["Date"])  # Remove invalid dates
-                    data["Is Running"] = pd.to_numeric(data["Is Running"], errors="coerce")
-                    filtered_data = data[
-                        (data["Date"] >= pd.Timestamp(start_date)) &
-                        (data["Date"] <= pd.Timestamp(end_date)) &
-                        (data["Is Running"] == 1)  # Use 1 instead of True
-                    ]
+                    # Filter Data
+                    filtered_data = filter_data(data, selected_equipment, start_date, end_date)
 
-                    # Check if filtered data is empty
                     if filtered_data.empty:
                         st.warning(f"No data found for {selected_equipment} between {start_date} and {end_date}.")
-                        st.write(f"### {selected_equipment} Report")
-                        st.write("The equipment hasn't been running during the selected date range.")
                     else:
                         st.write(f"### Filtered Data for {selected_equipment}")
                         st.dataframe(filtered_data)
