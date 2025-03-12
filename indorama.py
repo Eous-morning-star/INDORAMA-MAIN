@@ -769,13 +769,22 @@ elif st.session_state.page == "monitoring":
             ]
         }
 
-        # Persistent fields
-        date = st.date_input("Date", key="date")
+        # ✅ Store last selected equipment
+        if "last_selected_equipment" not in st.session_state:
+            st.session_state.last_selected_equipment = None
+
+        # ✅ Persistent fields
+        date = st.date_input("Date", key="date", value=datetime.now().date())
         area = st.selectbox("Select Area", options=list(equipment_lists.keys()), key="area")
         equipment_options = equipment_lists.get(area, [])
-        equipment = st.selectbox("Select Equipment", options=equipment_options, key="equipment")
+        selected_equipment = st.selectbox("Select Equipment", options=equipment_options, key="equipment")
 
-        # Checkbox for "Is the equipment running?"
+        # ✅ Reset "Is Running" when new equipment is selected
+        if st.session_state.last_selected_equipment != selected_equipment:
+            st.session_state.is_running = False
+            st.session_state.last_selected_equipment = selected_equipment  # Update last selected equipment
+
+        # ✅ Checkbox for "Is the equipment running?"
         is_running = st.checkbox("Is the equipment running?", key="is_running")
         
         # ✅ Initialize 'gearbox' before using it
