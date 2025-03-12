@@ -578,28 +578,7 @@ if st.session_state.page == "main":
                             st.info(rec)
                     else:
                         st.success("✅ No immediate issues detected in the deviations data.")
-                    # ✅ Add CSS to make the "Download Report" button black
-                    st.markdown(
-                        """
-                        <style>
-                        div.stDownloadButton > button {
-                            background-color: black !important;
-                            color: white !important;
-                            border-radius: 10px !important;
-                            padding: 10px 15px !important;
-                            font-size: 16px !important;
-                            font-weight: bold !important;
-                            border: 2px solid white !important;
-                        }
-                    
-                        div.stDownloadButton > button:hover {
-                            background-color: #333 !important;
-                            color: white !important;
-                        }
-                        </style>
-                        """,
-                        unsafe_allow_html=True
-                    )
+    
                     # ✅ Download Weekly Report
                     st.write("#### Download Weekly Report")
                     csv = deviation_data.to_csv(index=False)
@@ -770,22 +749,22 @@ elif st.session_state.page == "monitoring":
         }
 
         # ✅ Store last selected equipment
-        if "last_selected_equipment" not in st.session_state:
-            st.session_state.last_selected_equipment = None
+    if "last_selected_equipment" not in st.session_state:
+        st.session_state.last_selected_equipment = None
 
-        # ✅ Persistent fields
-        date = st.date_input("Date", key="date", value=datetime.now().date())
-        area = st.selectbox("Select Area", options=list(equipment_lists.keys()), key="area")
-        equipment_options = equipment_lists.get(area, [])
-        selected_equipment = st.selectbox("Select Equipment", options=equipment_options, key="equipment")
+    # ✅ Persistent fields
+    date = st.date_input("Date", key="date", value=datetime.now().date())
+    area = st.selectbox("Select Area", options=list(equipment_lists.keys()), key="area")
+    equipment_options = equipment_lists.get(area, [])
+    selected_equipment = st.selectbox("Select Equipment", options=equipment_options, key="equipment")
 
-        # ✅ Reset "Is Running" when new equipment is selected
-        if st.session_state.last_selected_equipment != selected_equipment:
-            st.session_state.is_running = False
-            st.session_state.last_selected_equipment = selected_equipment  # Update last selected equipment
+    # ✅ Reset "Is Running" when new equipment is selected
+    if st.session_state.last_selected_equipment != selected_equipment:
+        st.session_state.is_running = False
+        st.session_state.last_selected_equipment = selected_equipment  # Update last selected equipment
 
-        # ✅ Checkbox for "Is the equipment running?"
-        is_running = st.checkbox("Is the equipment running?", key="is_running")
+    # ✅ Checkbox for "Is the equipment running?"
+    is_running = st.checkbox("Is the equipment running?", key="is_running")
         
         # ✅ Initialize 'gearbox' before using it
         gearbox = False  # Default value
@@ -835,6 +814,12 @@ elif st.session_state.page == "monitoring":
         # Submit Button
         if st.button("Submit Data"):
             try:
+                # ✅ Retrieve values correctly from session state
+                date = st.session_state.date
+                area = st.session_state.area
+                equipment = st.session_state.equipment  # 🔥 Fix: Ensure we get equipment correctly
+                is_running = st.session_state.is_running
+                
                 new_data = pd.DataFrame([{
                     "Date": date.strftime("%Y-%m-%d"),
                     "Area": area,
@@ -897,8 +882,7 @@ elif st.session_state.page == "monitoring":
                 all_equipment = [equipment for area in equipment_lists.values() for equipment in area]
 
                 # Dropdown for Equipment Selection
-                equipment_options = data["Equipment"].unique()
-                selected_equipment = st.selectbox("Select Equipment", options=equipment_options)
+                selected_equipment = st.selectbox("Select Equipment", options=all_equipment)
 
                 # Date Range Inputs
                 start_date = st.date_input("Start Date", value=datetime(2023, 1, 1))
@@ -907,11 +891,21 @@ elif st.session_state.page == "monitoring":
                 if start_date > end_date:
                     st.error("Start date cannot be later than end date.")
                 else:
-                    # Filter Data
-                    filtered_data = filter_data(data, selected_equipment, start_date, end_date)
+                    # Filter data for the selected equipment and date range
+                    data["Date"] = pd.to_datetime(data["Date"], errors="coerce")
+                    data = data.dropna(subset=["Date"])  # Remove invalid dates
+                    data["Is Running"] = pd.to_numeric(data["Is Running"], errors="coerce")
+                    filtered_data = data[
+                        (data["Date"] >= pd.Timestamp(start_date)) &
+                        (data["Date"] <= pd.Timestamp(end_date)) &
+                        (data["Is Running"] == 1)  # Use 1 instead of True
+                    ]
 
+                    # Check if filtered data is empty
                     if filtered_data.empty:
                         st.warning(f"No data found for {selected_equipment} between {start_date} and {end_date}.")
+                        st.write(f"### {selected_equipment} Report")
+                        st.write("The equipment hasn't been running during the selected date range.")
                     else:
                         st.write(f"### Filtered Data for {selected_equipment}")
                         st.dataframe(filtered_data)
