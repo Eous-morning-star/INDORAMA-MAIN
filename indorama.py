@@ -766,8 +766,8 @@ elif st.session_state.page == "monitoring":
     # ✅ Checkbox for "Is the equipment running?"
     is_running = st.checkbox("Is the equipment running?", key="is_running")
         
-        # ✅ Initialize 'gearbox' before using it
-        gearbox = False  # Default value
+    # ✅ Initialize 'gearbox' before using it
+    gearbox = False  # Default value
         
         # Data Entry Fields
         if is_running:
