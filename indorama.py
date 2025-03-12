@@ -578,6 +578,28 @@ if st.session_state.page == "main":
                             st.info(rec)
                     else:
                         st.success("✅ No immediate issues detected in the deviations data.")
+                    # ✅ Add CSS to make the "Download Report" button black
+                    st.markdown(
+                        """
+                        <style>
+                        div.stDownloadButton > button {
+                            background-color: black !important;
+                            color: white !important;
+                            border-radius: 10px !important;
+                            padding: 10px 15px !important;
+                            font-size: 16px !important;
+                            font-weight: bold !important;
+                            border: 2px solid white !important;
+                        }
+                    
+                        div.stDownloadButton > button:hover {
+                            background-color: #333 !important;
+                            color: white !important;
+                        }
+                        </style>
+                        """,
+                        unsafe_allow_html=True
+                    )
     
                     # ✅ Download Weekly Report
                     st.write("#### Download Weekly Report")
