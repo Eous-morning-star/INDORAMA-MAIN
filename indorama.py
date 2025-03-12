@@ -799,22 +799,22 @@ elif st.session_state.page == "monitoring":
             key=f"gearbox_{equipment}_{date}"
         )
 
-            if gearbox:
-                gearbox_temp = st.number_input("Gearbox Temperature (°C)", min_value=0.0, max_value=200.0, step=0.1,
-                                               key="gearbox_temp")
-                gearbox_oil = st.selectbox("Gearbox Oil Level", ["Normal", "Low", "High"], key="gearbox_oil")
-                gearbox_leakage = st.selectbox("Gearbox Leakage", ["No", "Yes"], key="gearbox_leakage")
-                gearbox_abnormal_sound = st.selectbox("Gearbox Abnormal Sound", ["No", "Yes"], key="gearbox_abnormal_sound")
-                # Vibration Monitoring for gearbox
-                st.subheader("Gearbox_Vibration Monitoring")
-                gearbox_vibration_rms_velocity = st.number_input("Gearbox RMS Velocity (mm/s)", min_value=0.0, max_value=100.0,
-                                                         step=0.1,
-                                                         key="gearbox_vibration_rms_velocity")
-                gearbox_vibration_peak_acceleration = st.number_input("Gearbox Peak Acceleration (g)", min_value=0.0, max_value=10.0,
-                                                              step=0.1,
-                                                              key="gearbox_vibration_peak_acceleration")
-                gearbox_vibration_displacement = st.number_input("Gearbox Displacement (µm)", min_value=0.0, max_value=1000.0, step=0.1,
-                                                         key="gearbox_vibration_displacement")
+        if gearbox:
+            gearbox_temp = st.number_input("Gearbox Temperature (°C)", min_value=0.0, max_value=200.0, step=0.1,
+                                           key="gearbox_temp")
+            gearbox_oil = st.selectbox("Gearbox Oil Level", ["Normal", "Low", "High"], key="gearbox_oil")
+            gearbox_leakage = st.selectbox("Gearbox Leakage", ["No", "Yes"], key="gearbox_leakage")
+            gearbox_abnormal_sound = st.selectbox("Gearbox Abnormal Sound", ["No", "Yes"], key="gearbox_abnormal_sound")
+            # Vibration Monitoring for gearbox
+            st.subheader("Gearbox_Vibration Monitoring")
+            gearbox_vibration_rms_velocity = st.number_input("Gearbox RMS Velocity (mm/s)", min_value=0.0, max_value=100.0,
+                                                     step=0.1,
+                                                     key="gearbox_vibration_rms_velocity")
+            gearbox_vibration_peak_acceleration = st.number_input("Gearbox Peak Acceleration (g)", min_value=0.0, max_value=10.0,
+                                                          step=0.1,
+                                                          key="gearbox_vibration_peak_acceleration")
+            gearbox_vibration_displacement = st.number_input("Gearbox Displacement (µm)", min_value=0.0, max_value=1000.0, step=0.1,
+                                                     key="gearbox_vibration_displacement")
 
         # Submit Button
         if st.button("Submit Data"):
