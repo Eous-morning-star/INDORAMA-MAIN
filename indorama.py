@@ -790,10 +790,15 @@ elif st.session_state.page == "monitoring":
             vibration_displacement = st.number_input("Displacement (µm)", min_value=0.0, max_value=1000.0, step=0.1,
                                                      key="vibration_displacement")
 
-            # Gearbox Inputs
-            gearbox = st.checkbox(
-    "Does the equipment have a gearbox?", key=f"gearbox_{equipment}_{date}"
-)
+            # Ensure these variables exist in session state
+            equipment = st.session_state.get("equipment", "")
+            date = st.session_state.get("date", datetime.now().date().strftime("%Y-%m-%d"))
+            
+            st.checkbox(
+                "Does the equipment have a gearbox?", 
+                key=f"gearbox_{equipment}_{date}"
+            )
+
             if gearbox:
                 gearbox_temp = st.number_input("Gearbox Temperature (°C)", min_value=0.0, max_value=200.0, step=0.1,
                                                key="gearbox_temp")
