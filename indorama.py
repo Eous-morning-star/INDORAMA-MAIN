@@ -752,6 +752,7 @@ if st.session_state.page == "main":
     # Next Button to Navigate
     if st.button("Next"):
         st.session_state.page = "monitoring"
+        st.rerun()
 
 elif st.session_state.page == "monitoring":
 
