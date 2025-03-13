@@ -664,33 +664,33 @@ elif st.session_state.page == "monitoring":
 
             # Gearbox Inputs
             st.subheader("Gearbox Monitoring")
-            motor_de_temp = st.number_input("Gearbox Driving End Temperature (°C)", min_value=0.0, max_value=200.0, step=0.1,
-                                  key="motor_de_temp")
-            motor_dr_temp = st.number_input("Gearbox Driven End Temperature (°C)", min_value=0.0, max_value=200.0, step=0.1,
-                                  key="motor_dr_temp")
-            motor_abnormal_sound = st.selectbox("Gearbox Abnormal Sound", ["No", "Yes"], key="motor_abnormal_sound")
+            gearbox_de_temp = st.number_input("Gearbox Driving End Temperature (°C)", min_value=0.0, max_value=200.0, step=0.1,
+                                  key="gearbox_de_temp")
+            gearbox_dr_temp = st.number_input("Gearbox Driven End Temperature (°C)", min_value=0.0, max_value=200.0, step=0.1,
+                                  key="gearbox_dr_temp")
+            gearbox_abnormal_sound = st.selectbox("Gearbox Abnormal Sound", ["No", "Yes"], key="gearbox_abnormal_sound")
             
             # Vibration Monitoring for Gearbox de
             st.subheader("Gearbox DE Vibration Monitoring")
-            motor_de_horizontal_vibration_rms_velocity = st.number_input("Gearbox DE Horizontal RMS (mm/s)", min_value=0.0, max_value=100.0,
+            gearbox_de_horizontal_vibration_rms_velocity = st.number_input("Gearbox DE Horizontal RMS (mm/s)", min_value=0.0, max_value=100.0,
                                                      step=0.1,
-                                                     key="motor_de_horizontal_vibration_rms_velocity")
-            motor_de_vertical_vibration_rms_velocity = st.number_input("Gearbox DE Vertical RMS (mm/s)", min_value=0.0, max_value=10.0,
+                                                     key="gearbox_de_horizontal_vibration_rms_velocity")
+            gearbox_de_vertical_vibration_rms_velocity = st.number_input("Gearbox DE Vertical RMS (mm/s)", min_value=0.0, max_value=10.0,
                                                           step=0.1,
-                                                          key="motor_de_vertical_vibration_rms_velocity")
-            motor_de_axial_vibration_rms_velocity = st.number_input("Gearbox DE Axial RMS (mm/s)", min_value=0.0, max_value=1000.0, step=0.1,
-                                                     key="motor_de_axial_vibration_rms_velocity")
+                                                          key="gearbox_de_vertical_vibration_rms_velocity")
+            gearbox_de_axial_vibration_rms_velocity = st.number_input("Gearbox DE Axial RMS (mm/s)", min_value=0.0, max_value=1000.0, step=0.1,
+                                                     key="gearbox_de_axial_vibration_rms_velocity")
 
             # Vibration Monitoring for Gearbox nde
             st.subheader("Gearbox NDE Vibration Monitoring")
-            motor_nde_horizontal_vibration_rms_velocity = st.number_input("Gearbox NDE Horizontal RMS (mm/s)", min_value=0.0, max_value=100.0,
+            gearbox_nde_horizontal_vibration_rms_velocity = st.number_input("Gearbox NDE Horizontal RMS (mm/s)", min_value=0.0, max_value=100.0,
                                                      step=0.1,
-                                                     key="motor_nde_horizontal_vibration_rms_velocity")
-            motor_nde_vertical_vibration_rms_velocity = st.number_input("Gearbox NDE Vertical RMS (mm/s)", min_value=0.0, max_value=10.0,
+                                                     key="gearbox_nde_horizontal_vibration_rms_velocity")
+            gearbox_nde_vertical_vibration_rms_velocity = st.number_input("Gearbox NDE Vertical RMS (mm/s)", min_value=0.0, max_value=10.0,
                                                           step=0.1,
-                                                          key="motor_nde_vertical_vibration_rms_velocity")
-            motor_nde_axial_vibration_rms_velocity = st.number_input("Gearbox NDE Axial RMS (mm/s)", min_value=0.0, max_value=1000.0, step=0.1,
-                                                     key="motor_nde_axial_vibration_rms_velocity")                                        
+                                                          key="gearbox_nde_vertical_vibration_rms_velocity")
+            gearbox_nde_axial_vibration_rms_velocity = st.number_input("Gearbox NDE Axial RMS (mm/s)", min_value=0.0, max_value=1000.0, step=0.1,
+                                                     key="gearbox_nde_axial_vibration_rms_velocity")                                        
 
         # Submit Button
         
@@ -720,15 +720,15 @@ elif st.session_state.page == "monitoring":
                     "NDE Horizontal RMS (mm/s)": nde_horizontal_vibration_rms_velocity if is_running else 0.0,
                     "NDE Vertical RMS (mm/s)": nde_vertical_vibration_rms_velocity if is_running else 0.0,
                     "NDE Axial RMS (mm/s)": nde_axial_vibration_rms_velocity if is_running else 0.0,
-                    "Gearbox Driving End Temp": motor_de_temp if is_running else 0.0,
-                    "Gearbox Driven End Temp": motor_dr_temp if is_running else 0.0,
-                    "Gearbox Abnormal Sound": motor_abnormal_sound if is_running else "N/A",
-                    "Gearbox DE Horizontal RMS (mm/s)": motor_de_horizontal_vibration_rms_velocity if is_running else 0.0,
-                    "Gearbox DE Vertical RMS (mm/s)": motor_de_vertical_vibration_rms_velocity if is_running else 0.0,
-                    "Gearbox DE Axial RMS (mm/s)": motor_de_axial_vibration_rms_velocity if is_running else 0.0,
-                    "Gearbox NDE Horizontal RMS (mm/s)": motor_nde_horizontal_vibration_rms_velocity if is_running else 0.0,
-                    "Gearbox NDE Vertical RMS (mm/s)": motor_nde_vertical_vibration_rms_velocity if is_running else 0.0,
-                    "Gearbox NDE Axial RMS (mm/s)": motor_nde_axial_vibration_rms_velocity if is_running else 0.0,
+                    "Gearbox Driving End Temp": gearbox_de_temp if is_running else 0.0,
+                    "Gearbox Driven End Temp": gearbox_dr_temp if is_running else 0.0,
+                    "Gearbox Abnormal Sound": gearbox_abnormal_sound if is_running else "N/A",
+                    "Gearbox DE Horizontal RMS (mm/s)": gearbox_de_horizontal_vibration_rms_velocity if is_running else 0.0,
+                    "Gearbox DE Vertical RMS (mm/s)": gearbox_de_vertical_vibration_rms_velocity if is_running else 0.0,
+                    "Gearbox DE Axial RMS (mm/s)": gearbox_de_axial_vibration_rms_velocity if is_running else 0.0,
+                    "Gearbox NDE Horizontal RMS (mm/s)": gearbox_nde_horizontal_vibration_rms_velocity if is_running else 0.0,
+                    "Gearbox NDE Vertical RMS (mm/s)": gearbox_nde_vertical_vibration_rms_velocity if is_running else 0.0,
+                    "Gearbox NDE Axial RMS (mm/s)": gearbox_nde_axial_vibration_rms_velocity if is_running else 0.0,
                 }])
         
                 # ✅ Ensure Google Sheets connection exists
