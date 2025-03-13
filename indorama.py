@@ -137,9 +137,10 @@ equipment_lists = {
         "2-P-2602-B", "2-P-2303-A", "2-P-2303-B"
     ]
 }
+# Flatten the nested lists into a single equipment list
+equipment_list = [equipment for area in equipment_lists.values() for equipment in area]
 
-# ✅ Use deepcopy to ensure each equipment gets its own independent dictionary
-equipment_thresholds = {equipment: copy.deepcopy(common_thresholds) for equipment in equipment_lists}
+equipment_thresholds = {equipment: copy.deepcopy(common_thresholds) for equipment in equipment_list}
 
 # ✅ Authenticate Google Sheets with the correct scope
 def authenticate_google_sheets():
