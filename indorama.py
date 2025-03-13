@@ -139,7 +139,7 @@ equipment_lists = {
 }
 
 # ✅ Use deepcopy to ensure each equipment gets its own independent dictionary
-equipment_thresholds = {equipment: copy.deepcopy(common_thresholds) for equipment in equipment_list}
+equipment_thresholds = {equipment: copy.deepcopy(common_thresholds) for equipment in equipment_lists}
 
 # ✅ Authenticate Google Sheets with the correct scope
 def authenticate_google_sheets():
