@@ -656,7 +656,7 @@ elif st.session_state.page == "monitoring":
             de_axial_vibration_rms_velocity = st.number_input("DE Axial RMS (mm/s)", min_value=0.0, max_value=1000.0, step=0.1,
                                                      key="de_axial_vibration_rms_velocity")
 
-            # Vibration Monitoring for Gearbox nde
+            # Vibration Monitoring for nde
             st.subheader("NDE Vibration Monitoring")
             nde_horizontal_vibration_rms_velocity = st.number_input("NDE Horizontal RMS (mm/s)", min_value=0.0, max_value=100.0,
                                                      step=0.1,
@@ -668,6 +668,7 @@ elif st.session_state.page == "monitoring":
                                                      key="nde_axial_vibration_rms_velocity")                            
 
             # Gearbox Inputs
+            gearbox = st.checkbox("Does the equipment have a gearbox?", key="gearbox")
             st.subheader("Gearbox Monitoring")
             gearbox_de_temp = st.number_input("Gearbox Driving End Temperature (°C)", min_value=0.0, max_value=200.0, step=0.1,
                                   key="gearbox_de_temp")
