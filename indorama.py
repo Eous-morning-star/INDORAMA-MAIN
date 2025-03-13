@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import plotly.express as px
 import base64
 import gspread
+import copy
 from google.oauth2.service_account import Credentials
 
 st.markdown(
@@ -62,27 +63,6 @@ if st.sidebar.button("🔒 Logout"):
     st.session_state.page = "passkey"  # Redirect to Passkey page
     st.rerun()  # Refresh app to apply changes
 
-# Define deviation thresholds for specific equipment
-# Define a common threshold template
-common_thresholds = {
-    "Driving End Temp": {"min": 0, "max": 70},
-    "Driven End Temp": {"min": 0, "max": 70},
-    "DE Horizontal RMS (mm/s)": {"min": 0, "max": 6},
-    "NDE Horizontal RMS (mm/s)": {"min": 0, "max": 6},
-    "DE Vertical RMS (mm/s)": {"min": 0, "max": 6},
-    "NDE Vertical RMS (mm/s)": {"min": 0, "max": 6},
-    "DE Axial RMS (mm/s)": {"min": 0, "max": 6},
-    "NDE Axial RMS (mm/s)": {"min": 0, "max": 6},
-    "Gearbox Driving End Temp": {"min": 0, "max": 70},
-    "Gearbox Driven End Temp": {"min": 0, "max": 70},
-    "Gearbox DE Horizontal RMS (mm/s)": {"min": 0, "max": 6},
-    "Gearbox NDE Horizontal RMS (mm/s)": {"min": 0, "max": 6},
-    "Gearbox DE Vertical RMS (mm/s)": {"min": 0, "max": 6},
-    "Gearbox NDE Vertical RMS (mm/s)": {"min": 0, "max": 6},
-    "Gearbox DE Axial RMS (mm/s)": {"min": 0, "max": 6},
-    "Gearbox NDE Axial RMS (mm/s)": {"min": 0, "max": 6}
-}, 
-
 
 # Equipment lists for each area
 equipment_lists = {
@@ -137,9 +117,33 @@ equipment_lists = {
         "2-P-2602-B", "2-P-2303-A", "2-P-2303-B"
     ]
 }
-# Flatten the nested lists into a single equipment list
+
+# ✅ Flatten nested lists into a single list of equipment names
 equipment_list = [equipment for area in equipment_lists.values() for equipment in area]
 
+# Define deviation thresholds for specific equipment
+# Define a common threshold template
+common_thresholds = {
+    "Driving End Temp": {"min": 0, "max": 70},
+    "Driven End Temp": {"min": 0, "max": 70},
+    "DE Horizontal RMS (mm/s)": {"min": 0, "max": 6},
+    "NDE Horizontal RMS (mm/s)": {"min": 0, "max": 6},
+    "DE Vertical RMS (mm/s)": {"min": 0, "max": 6},
+    "NDE Vertical RMS (mm/s)": {"min": 0, "max": 6},
+    "DE Axial RMS (mm/s)": {"min": 0, "max": 6},
+    "NDE Axial RMS (mm/s)": {"min": 0, "max": 6},
+    "Gearbox Driving End Temp": {"min": 0, "max": 70},
+    "Gearbox Driven End Temp": {"min": 0, "max": 70},
+    "Gearbox DE Horizontal RMS (mm/s)": {"min": 0, "max": 6},
+    "Gearbox NDE Horizontal RMS (mm/s)": {"min": 0, "max": 6},
+    "Gearbox DE Vertical RMS (mm/s)": {"min": 0, "max": 6},
+    "Gearbox NDE Vertical RMS (mm/s)": {"min": 0, "max": 6},
+    "Gearbox DE Axial RMS (mm/s)": {"min": 0, "max": 6},
+    "Gearbox NDE Axial RMS (mm/s)": {"min": 0, "max": 6}
+}, 
+
+
+# ✅ Now use `copy.deepcopy()` correctly
 equipment_thresholds = {equipment: copy.deepcopy(common_thresholds) for equipment in equipment_list}
 
 # ✅ Authenticate Google Sheets with the correct scope
