@@ -7,6 +7,56 @@ import base64
 import gspread
 from google.oauth2.service_account import Credentials
 
+st.markdown(
+    """
+    <style>
+    /* Hide the Streamlit edit pencil icon */
+    [data-testid="stDeployButton"] {display: none !important;}
+    
+    /* Hide the GitHub logo in the top right corner */
+    header {visibility: hidden;}
+    
+    /* Hide Streamlit's main menu */
+    #MainMenu {visibility: hidden;}
+    
+    /* Hide Streamlit footer (Powered by Streamlit) */
+    footer {visibility: hidden;}
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# ✅ Set your passkey (Change this to your desired passkey)
+PASSKEY = "indorama2024"  # 🔥 Change this to your secret passkey
+
+# ✅ Check if user is authenticated
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False  # Default to False
+
+# ✅ Show login form if not authenticated
+if not st.session_state.authenticated:
+    st.title("🔒 Secure Access")
+
+    # User input for passkey
+    passkey_input = st.text_input("Enter Passkey:", type="password")  # Hide input for security
+
+    # Verify passkey
+    if st.button("Unlock"):
+        if passkey_input == PASSKEY:
+            st.session_state.authenticated = True  # Set authentication to True
+            st.success("✅ Access Granted! Welcome to the App.")
+            st.rerun()  # ✅ Use st.rerun() instead
+
+        else:
+            st.error("❌ Incorrect Passkey. Please try again.")
+
+    # Stop execution if authentication fails
+    st.stop()
+
+# ✅ If authenticated, show the main app
+st.sidebar.success("🔓 Access Granted")
+
+
 # Define deviation thresholds for specific equipment
 equipment_thresholds = ({
     # Reaction Area
